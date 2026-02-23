@@ -12,7 +12,9 @@ import PermissionModal from "./modals/PermissionModal";
 import UserModal from "./modals/UserModal";
 import CategoryModal from "./modals/CategoryModal";
 import OrganizationModal from "./modals/OrganizationModal";
-import { Role, Permission, AdminUser } from "@/types/admin.types";
+import ActionDetailModal from "./modals/ActionDetailModal";
+import SubActionsModal from "./modals/SubActionsModal";
+import { Role, Permission, AdminUser, AdminAction } from "@/types/admin.types";
 import adminAPI from "@/services/adminService";
 import { organizationAPI } from "@/services/organizationService";
 
@@ -39,6 +41,33 @@ interface Organization {
   status?: "active" | "inactive" | "suspended" | "pending";
   createdAt?: string | Date;
   updatedAt?: string | Date;
+}
+
+interface SubAction {
+  id: string;
+  actionId: string;
+  name: string;
+  description?: string;
+  price: string;
+  stock: number | null;
+  stockReserved: number;
+  variants?: Record<string, any>;
+  metadata?: Record<string, any>;
+  isActive: boolean;
+  sortOrder: number;
+  coverImage?: string;
+  dedicatedQrCodeData?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface SubActionsStats {
+  total: number;
+  active: number;
+  inactive: number;
+  withStock: number;
+  unlimited: number;
+  soldOut: number;
 }
 
 interface AdminModalContextType {
@@ -71,6 +100,28 @@ interface AdminModalContextType {
   closeOrganizationModal: () => void;
   isOrganizationModalOpen: boolean;
   selectedOrganization: Organization | null | undefined;
+
+  // Action Detail Modal
+  openActionDetailModal: (action: AdminAction | null) => void;
+  closeActionDetailModal: () => void;
+  isActionDetailModalOpen: boolean;
+  selectedAction: AdminAction | null;
+
+  // Sub-Actions Modal
+  openSubActionsModal: (
+    action: AdminAction | null,
+    subActions: SubAction[],
+    stats: SubActionsStats | null,
+    loading: boolean,
+  ) => void;
+  closeSubActionsModal: () => void;
+  isSubActionsModalOpen: boolean;
+  subActionsData: {
+    action: AdminAction | null;
+    subActions: SubAction[];
+    stats: SubActionsStats | null;
+    loading: boolean;
+  };
 
   // Data
   permissions: Permission[];
@@ -121,6 +172,26 @@ export function AdminModalsContainer({ children }: AdminModalsContainerProps) {
   const [selectedOrganization, setSelectedOrganization] = useState<
     Organization | null | undefined
   >(null);
+
+  // Action Detail Modal state
+  const [isActionDetailModalOpen, setIsActionDetailModalOpen] = useState(false);
+  const [selectedAction, setSelectedAction] = useState<AdminAction | null>(
+    null,
+  );
+
+  // Sub-Actions Modal state
+  const [isSubActionsModalOpen, setIsSubActionsModalOpen] = useState(false);
+  const [subActionsData, setSubActionsData] = useState<{
+    action: AdminAction | null;
+    subActions: SubAction[];
+    stats: SubActionsStats | null;
+    loading: boolean;
+  }>({
+    action: null,
+    subActions: [],
+    stats: null,
+    loading: false,
+  });
 
   // Shared data
   const [permissions, setPermissions] = useState<Permission[]>([]);
@@ -198,6 +269,36 @@ export function AdminModalsContainer({ children }: AdminModalsContainerProps) {
     setSelectedOrganization(null);
   };
 
+  const openActionDetailModal = (action: AdminAction | null) => {
+    setSelectedAction(action);
+    setIsActionDetailModalOpen(true);
+  };
+
+  const closeActionDetailModal = () => {
+    setIsActionDetailModalOpen(false);
+    setSelectedAction(null);
+  };
+
+  const openSubActionsModal = (
+    action: AdminAction | null,
+    subActions: SubAction[],
+    stats: SubActionsStats | null,
+    loading: boolean,
+  ) => {
+    setSubActionsData({ action, subActions, stats, loading });
+    setIsSubActionsModalOpen(true);
+  };
+
+  const closeSubActionsModal = () => {
+    setIsSubActionsModalOpen(false);
+    setSubActionsData({
+      action: null,
+      subActions: [],
+      stats: null,
+      loading: false,
+    });
+  };
+
   const triggerRefresh = () => {
     setRefreshTrigger((prev) => prev + 1);
   };
@@ -223,6 +324,14 @@ export function AdminModalsContainer({ children }: AdminModalsContainerProps) {
     closeOrganizationModal,
     isOrganizationModalOpen,
     selectedOrganization,
+    openActionDetailModal,
+    closeActionDetailModal,
+    isActionDetailModalOpen,
+    selectedAction,
+    openSubActionsModal,
+    closeSubActionsModal,
+    isSubActionsModalOpen,
+    subActionsData,
     permissions,
     setPermissions,
     roles,
@@ -289,6 +398,21 @@ export function AdminModalsContainer({ children }: AdminModalsContainerProps) {
         }}
         organization={selectedOrganization}
         categories={categories}
+      />
+
+      <ActionDetailModal
+        isOpen={isActionDetailModalOpen}
+        onClose={closeActionDetailModal}
+        action={selectedAction}
+      />
+
+      <SubActionsModal
+        isOpen={isSubActionsModalOpen}
+        onClose={closeSubActionsModal}
+        action={subActionsData.action}
+        subActions={subActionsData.subActions}
+        subActionsStats={subActionsData.stats}
+        loading={subActionsData.loading}
       />
     </AdminModalContext.Provider>
   );

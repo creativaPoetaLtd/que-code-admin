@@ -54,7 +54,7 @@ export default function Header({ title, subtitle, onMobileMenuToggle }: HeaderPr
         </div>
 
         {/* Time range filter */}
-        <div className="hidden md:flex items-center gap-2 ml-4 px-3 py-1 rounded-full border border-gray-300 bg-white text-gray-600">
+        {/* <div className="hidden md:flex items-center gap-2 ml-4 px-3 py-1 rounded-full border border-gray-300 bg-white text-gray-600">
           <Clock className="w-3 h-3" />
           <select
             value={timeRange}
@@ -67,10 +67,10 @@ export default function Header({ title, subtitle, onMobileMenuToggle }: HeaderPr
               </option>
             ))}
           </select>
-        </div>
+        </div> */}
 
         {/* Search */}
-        <div className="hidden lg:flex relative ml-4">
+        {/* <div className="hidden lg:flex relative ml-4">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-3 h-3 text-gray-400" />
           <input
             type="text"
@@ -79,7 +79,7 @@ export default function Header({ title, subtitle, onMobileMenuToggle }: HeaderPr
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-48 pl-9 pr-4 py-2 text-xs bg-white border border-gray-300 rounded-full text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
           />
-        </div>
+        </div> */}
       </div>
 
       {/* Right section */}

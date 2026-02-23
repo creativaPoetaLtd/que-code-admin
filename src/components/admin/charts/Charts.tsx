@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef } from "react";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -12,8 +12,8 @@ import {
   Tooltip,
   Legend,
   Filler,
-} from 'chart.js';
-import { Bar, Line } from 'react-chartjs-2';
+} from "chart.js";
+import { Bar, Line } from "react-chartjs-2";
 
 ChartJS.register(
   CategoryScale,
@@ -24,30 +24,38 @@ ChartJS.register(
   Title,
   Tooltip,
   Legend,
-  Filler
+  Filler,
 );
 
 interface TransactionChartProps {
   className?: string;
+  labels?: string[];
+  transactions?: number[];
+  disputes?: number[];
 }
 
-export function TransactionChart({ className }: TransactionChartProps) {
+export function TransactionChart({
+  className,
+  labels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+  transactions = [820, 740, 930, 680, 910, 780, 720],
+  disputes = [18, 22, 27, 14, 31, 19, 12],
+}: TransactionChartProps) {
   const data = {
-    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+    labels,
     datasets: [
       {
-        label: 'Transactions',
-        data: [820, 740, 930, 680, 910, 780, 720],
-        backgroundColor: 'rgba(34, 197, 94, 0.8)',
-        borderColor: 'rgba(34, 197, 94, 1)',
+        label: "Transactions",
+        data: transactions,
+        backgroundColor: "rgba(34, 197, 94, 0.8)",
+        borderColor: "rgba(34, 197, 94, 1)",
         borderRadius: 6,
         maxBarThickness: 20,
       },
       {
-        label: 'Disputes',
-        data: [18, 22, 27, 14, 31, 19, 12],
-        backgroundColor: 'rgba(249, 115, 22, 0.8)',
-        borderColor: 'rgba(249, 115, 22, 1)',
+        label: "Disputes",
+        data: disputes,
+        backgroundColor: "rgba(249, 115, 22, 0.8)",
+        borderColor: "rgba(249, 115, 22, 1)",
         borderRadius: 6,
         maxBarThickness: 16,
       },
@@ -62,12 +70,12 @@ export function TransactionChart({ className }: TransactionChartProps) {
         display: false,
       },
       tooltip: {
-        mode: 'index' as const,
+        mode: "index" as const,
         intersect: false,
-        backgroundColor: 'rgba(255, 255, 255, 0.95)',
-        titleColor: '#1f2937',
-        bodyColor: '#4b5563',
-        borderColor: 'rgba(0, 0, 0, 0.1)',
+        backgroundColor: "rgba(255, 255, 255, 0.95)",
+        titleColor: "#1f2937",
+        bodyColor: "#4b5563",
+        borderColor: "rgba(0, 0, 0, 0.1)",
         borderWidth: 1,
       },
     },
@@ -77,7 +85,7 @@ export function TransactionChart({ className }: TransactionChartProps) {
           display: false,
         },
         ticks: {
-          color: 'rgba(75, 85, 99, 0.8)',
+          color: "rgba(75, 85, 99, 0.8)",
           font: {
             size: 10,
           },
@@ -85,10 +93,10 @@ export function TransactionChart({ className }: TransactionChartProps) {
       },
       y: {
         grid: {
-          color: 'rgba(209, 213, 219, 0.5)',
+          color: "rgba(209, 213, 219, 0.5)",
         },
         ticks: {
-          color: 'rgba(75, 85, 99, 0.8)',
+          color: "rgba(75, 85, 99, 0.8)",
           font: {
             size: 10,
           },
@@ -106,41 +114,54 @@ export function TransactionChart({ className }: TransactionChartProps) {
 
 interface FlowChartProps {
   className?: string;
+  labels?: string[];
+  series?: {
+    transfer?: number[];
+    payment?: number[];
+    donation?: number[];
+    vote?: number[];
+    topup?: number[];
+    withdrawal?: number[];
+  };
 }
 
-export function FlowChart({ className }: FlowChartProps) {
+export function FlowChart({
+  className,
+  labels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+  series,
+}: FlowChartProps) {
   const data = {
-    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+    labels,
     datasets: [
       {
-        label: 'Payments',
-        data: [120, 145, 160, 130, 190, 170, 150],
-        borderColor: 'rgba(34, 197, 94, 1)',
-        backgroundColor: 'rgba(34, 197, 94, 0.15)',
+        label: "Transfer",
+        data: series?.transfer || [120, 145, 160, 130, 190, 170, 150],
+        borderColor: "rgba(34, 197, 94, 1)",
+        backgroundColor: "rgba(34, 197, 94, 0.15)",
         tension: 0.35,
         fill: true,
         pointRadius: 2,
-        pointBackgroundColor: 'rgba(34, 197, 94, 1)',
+        pointBackgroundColor: "rgba(34, 197, 94, 1)",
       },
       {
-        label: 'Donations',
-        data: [40, 45, 60, 55, 72, 65, 58],
-        borderColor: 'rgba(59, 130, 246, 1)',
-        backgroundColor: 'rgba(59, 130, 246, 0.15)',
+        label: "Payment",
+        data: series?.payment || [40, 45, 60, 55, 72, 65, 58],
+        borderColor: "rgba(59, 130, 246, 1)",
+        backgroundColor: "rgba(59, 130, 246, 0.15)",
         tension: 0.35,
         fill: true,
         pointRadius: 2,
-        pointBackgroundColor: 'rgba(59, 130, 246, 1)',
+        pointBackgroundColor: "rgba(59, 130, 246, 1)",
       },
       {
-        label: 'Votes',
-        data: [200, 210, 260, 230, 310, 290, 280],
-        borderColor: 'rgba(225, 29, 72, 1)',
-        backgroundColor: 'rgba(225, 29, 72, 0.15)',
+        label: "Donation",
+        data: series?.donation || [200, 210, 260, 230, 310, 290, 280],
+        borderColor: "rgba(225, 29, 72, 1)",
+        backgroundColor: "rgba(225, 29, 72, 0.15)",
         tension: 0.35,
         fill: true,
         pointRadius: 2,
-        pointBackgroundColor: 'rgba(225, 29, 72, 1)',
+        pointBackgroundColor: "rgba(225, 29, 72, 1)",
       },
     ],
   };
@@ -153,12 +174,12 @@ export function FlowChart({ className }: FlowChartProps) {
         display: false,
       },
       tooltip: {
-        mode: 'index' as const,
+        mode: "index" as const,
         intersect: false,
-        backgroundColor: 'rgba(255, 255, 255, 0.95)',
-        titleColor: '#1f2937',
-        bodyColor: '#4b5563',
-        borderColor: 'rgba(0, 0, 0, 0.1)',
+        backgroundColor: "rgba(255, 255, 255, 0.95)",
+        titleColor: "#1f2937",
+        bodyColor: "#4b5563",
+        borderColor: "rgba(0, 0, 0, 0.1)",
         borderWidth: 1,
       },
     },
@@ -168,7 +189,7 @@ export function FlowChart({ className }: FlowChartProps) {
           display: false,
         },
         ticks: {
-          color: 'rgba(75, 85, 99, 0.8)',
+          color: "rgba(75, 85, 99, 0.8)",
           font: {
             size: 10,
           },
@@ -176,10 +197,10 @@ export function FlowChart({ className }: FlowChartProps) {
       },
       y: {
         grid: {
-          color: 'rgba(209, 213, 219, 0.5)',
+          color: "rgba(209, 213, 219, 0.5)",
         },
         ticks: {
-          color: 'rgba(75, 85, 99, 0.8)',
+          color: "rgba(75, 85, 99, 0.8)",
           font: {
             size: 10,
           },

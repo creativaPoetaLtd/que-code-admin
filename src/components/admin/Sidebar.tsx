@@ -45,13 +45,13 @@ const navigationSections = [
       { id: "users", label: "Users", icon: Users },
       { id: "organizations", label: "Organizations", icon: Building },
       { id: "transactions", label: "Transactions", icon: ArrowRightLeft },
-      { id: "financial", label: "Wallet & Flows", icon: Wallet },
+      { id: "financial", label: "Wallet & Restrictions", icon: Wallet },
+      { id: "actions", label: "Actions & Events", icon: Target },
       { id: "disputes", label: "Disputes", icon: Scale },
-      { id: "actions", label: "Actions & Groups", icon: Target },
       { id: "merchants", label: "Merchants", icon: Store },
-      { id: "analytics", label: "Analytics", icon: TrendingUp },
-      { id: "admins", label: "Admins", icon: Shield },
+      { id: "admins", label: "System Users", icon: Shield },
       { id: "config", label: "Platform Config", icon: Settings },
+
       { id: "logs", label: "Audit Logs", icon: FileText },
       {
         id: "support",

@@ -1,73 +1,278 @@
-'use client';
+"use client";
 
-import { cn } from '@/lib/utils';
-import Card, { CardHeader, CardTitle, CardContent } from '../ui/Card';
-import Badge from '../ui/Badge';
-import KPICard, { Sparkline, MiniKPI } from '../KPICard';
-import AlertsList, { mockAlerts } from '../AlertsList';
-import Table, { 
-  TableHeader, 
-  TableBody, 
-  TableRow, 
-  TableHead, 
-  TableCell, 
-  TableMainText, 
-  TableSubText 
-} from '../ui/Table';
-import Button from '../ui/Button';
-import { TransactionChart } from '../charts/Charts';
+import { useEffect, useMemo, useState } from "react";
+import Card, { CardHeader, CardTitle, CardContent } from "../ui/Card";
+import Badge from "../ui/Badge";
+import KPICard, { Sparkline, MiniKPI } from "../KPICard";
+import AlertsList, { mockAlerts } from "../AlertsList";
+import Table, {
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from "../ui/Table";
+import { FlowChart, TransactionChart } from "../charts/Charts";
+import adminAPI from "@/services/adminService";
+import {
+  DashboardFlowSummaryItem,
+  DashboardRange,
+  DashboardStatisticsData,
+} from "@/types/admin.types";
+
+const RANGE_OPTIONS: Array<{ value: DashboardRange; label: string }> = [
+  { value: "today", label: "Today" },
+  { value: "7d", label: "Last 7 days" },
+  { value: "30d", label: "Last 30 days" },
+  { value: "90d", label: "Last 90 days" },
+  { value: "12m", label: "Last 12 months" },
+];
+
+const formatNumber = (value: number) => value.toLocaleString();
+
+const formatCurrency = (value: number, currency = "RWF") =>
+  new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency,
+    maximumFractionDigits: 0,
+  }).format(value || 0);
+
+const formatPercent = (value: number) =>
+  `${value >= 0 ? "+" : ""}${value.toFixed(2)}%`;
+const formatPoints = (value: number) =>
+  `${value >= 0 ? "+" : ""}${value.toFixed(2)} pts`;
+
+const getTrendBadge = (item: DashboardFlowSummaryItem) => {
+  if (typeof item.trendPercent === "number") {
+    if (item.trendPercent > 0)
+      return {
+        text: `↑ ${item.trendPercent.toFixed(1)}%`,
+        variant: "success" as const,
+      };
+    if (item.trendPercent < 0)
+      return {
+        text: `↓ ${Math.abs(item.trendPercent).toFixed(1)}%`,
+        variant: "danger" as const,
+      };
+    return { text: "→ Stable", variant: "warning" as const };
+  }
+
+  if (typeof item.trendPoints === "number") {
+    if (item.trendPoints > 0)
+      return {
+        text: `↑ ${item.trendPoints.toFixed(1)} pt`,
+        variant: "warning" as const,
+      };
+    if (item.trendPoints < 0)
+      return {
+        text: `↓ ${Math.abs(item.trendPoints).toFixed(1)} pt`,
+        variant: "success" as const,
+      };
+    return { text: "→ Stable", variant: "warning" as const };
+  }
+
+  return { text: "—", variant: "muted" as const };
+};
+
+const getStatusVariant = (
+  status: string,
+): "success" | "warning" | "danger" | "muted" => {
+  const normalized = status.toLowerCase();
+  if (
+    normalized.includes("ok") ||
+    normalized.includes("healthy") ||
+    normalized.includes("normal")
+  )
+    return "success";
+  if (
+    normalized.includes("monitor") ||
+    normalized.includes("review") ||
+    normalized.includes("stable")
+  )
+    return "warning";
+  if (normalized.includes("risk") || normalized.includes("alert"))
+    return "danger";
+  return "muted";
+};
 
 export default function OverviewSection() {
+  const [range, setRange] = useState<DashboardRange>("7d");
+  const [stats, setStats] = useState<DashboardStatisticsData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const loadDashboardStats = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const response = await adminAPI.getDashboardStatistics({ range });
+        if (response?.success && response?.data) {
+          setStats(response.data);
+        } else {
+          setError("Failed to load dashboard analytics");
+        }
+      } catch (err: any) {
+        setError(
+          err?.response?.data?.message || "Failed to load dashboard analytics",
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadDashboardStats();
+  }, [range]);
+
+  const chartLabels = useMemo(
+    () =>
+      stats?.charts.transactionsDisputes.labels || [
+        "Mon",
+        "Tue",
+        "Wed",
+        "Thu",
+        "Fri",
+        "Sat",
+        "Sun",
+      ],
+    [stats],
+  );
+
+  const rangeLabel =
+    RANGE_OPTIONS.find((option) => option.value === range)?.label ||
+    "Last 7 days";
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex justify-end">
+          <div className="h-10 w-40 rounded-lg bg-gray-200 animate-pulse" />
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {Array.from({ length: 4 }).map((_, index) => (
+            <div
+              key={index}
+              className="h-36 rounded-2xl bg-gray-200 animate-pulse"
+            />
+          ))}
+        </div>
+        <div className="h-64 rounded-2xl bg-gray-200 animate-pulse" />
+      </div>
+    );
+  }
+
+  if (error || !stats) {
+    return (
+      <Card>
+        <CardContent>
+          <div className="py-12 text-center">
+            <p className="text-sm text-red-600">
+              {error || "Unable to load dashboard analytics"}
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <div className="space-y-6">
-      {/* KPI Grid */}
+      <div className="flex justify-end">
+        <select
+          value={range}
+          onChange={(event) => setRange(event.target.value as DashboardRange)}
+          className="h-10 rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700"
+        >
+          {RANGE_OPTIONS.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+      </div>
+
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <KPICard
-          title="Total users"
-          value={184532}
-          label="Verified accounts"
-          badge={{ text: '+312 today', variant: 'success' }}
-          trend={{ direction: 'up', value: '+3.2%', timeframe: 'last 7 days' }}
-          sparkline={<Sparkline type="users" />}
+          title="Users"
+          value={stats.kpis.totalUsers.total}
+          label={`${formatNumber(stats.kpis.totalUsers.verified)} verified in ${rangeLabel.toLowerCase()}`}
+          // badge={{
+          //   text: `${formatNumber(stats.kpis.totalUsers.newInRange)} in period`,
+          //   variant: "success",
+          // }}
+          trend={{
+            direction: stats.kpis.totalUsers.trendPercent >= 0 ? "up" : "down",
+            value: formatPercent(stats.kpis.totalUsers.trendPercent),
+            timeframe: rangeLabel.toLowerCase(),
+          }}
+          sparkline={
+            <Sparkline type="users" points={stats.charts.sparklines.users} />
+          }
         />
-        
+
         <KPICard
           title="Organizations"
-          value={2184}
-          label="NGOs, merchants, events, transport"
-          badge={{ text: '9 pending', variant: 'warning' }}
-          trend={{ direction: 'up', value: '+1.1%', timeframe: 'last 30 days' }}
-          sparkline={<Sparkline type="orgs" />}
+          value={stats.kpis.organizations.total}
+          label={`In ${rangeLabel.toLowerCase()} period`}
+          // badge={{
+          //   text: `${formatNumber(stats.kpis.organizations.pending)} pending`,
+          //   variant: "warning",
+          // }}
+          trend={{
+            direction:
+              stats.kpis.organizations.trendPercent >= 0 ? "up" : "down",
+            value: formatPercent(stats.kpis.organizations.trendPercent),
+            timeframe: rangeLabel.toLowerCase(),
+          }}
+          sparkline={
+            <Sparkline
+              type="orgs"
+              points={stats.charts.sparklines.organizations}
+            />
+          }
         />
-        
+
         <KPICard
-          title="24h volume"
-          value="€482,910"
+          title="Volume"
+          value={formatCurrency(
+            stats.kpis.volume.totalInRange,
+            stats.meta.currency,
+          )}
           label="Wallet → wallet, pay, votes, donations"
-          badge={{ text: 'Live', variant: 'live' }}
-          trend={{ direction: 'up', value: '+12.3%', timeframe: 'daily avg' }}
-          sparkline={<Sparkline type="volume" />}
+          // badge={{ text: "Live", variant: "live" }}
+          trend={{
+            direction: stats.kpis.volume.trendPercent >= 0 ? "up" : "down",
+            value: formatPercent(stats.kpis.volume.trendPercent),
+            timeframe: rangeLabel.toLowerCase(),
+          }}
+          sparkline={
+            <Sparkline type="volume" points={stats.charts.sparklines.volume} />
+          }
         />
-        
+
         <KPICard
           title="Risk / fraud"
-          value="0.8%"
-          label="Transactions flagged in last 24h"
-          badge={{ text: 'Engine v1.0', variant: 'success' }}
-          trend={{ direction: 'up', value: '+0.2 pts', timeframe: 'baseline' }}
-          sparkline={<Sparkline type="risk" />}
+          value={`${stats.kpis.riskFraud.ratePercent.toFixed(2)}%`}
+          label="Transactions flagged in selected range"
+          trend={{
+            direction: stats.kpis.riskFraud.trendPoints >= 0 ? "up" : "down",
+            value: formatPoints(stats.kpis.riskFraud.trendPoints),
+            timeframe: "vs previous period",
+          }}
+          sparkline={
+            <Sparkline type="risk" points={stats.charts.sparklines.risk} />
+          }
         />
       </div>
 
-      {/* Charts and Alerts Grid */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-        {/* Chart Card */}
         <Card className="xl:col-span-2">
           <CardHeader>
             <div>
-              <CardTitle>Transactions & disputes</CardTitle>
+              <CardTitle>Transactions</CardTitle>
               <p className="text-xs text-slate-400 mt-1">
-                Wallet → wallet, pay, donations, votes (last 7 days)
+                Wallet → wallet, pay, donations, votes (
+                {rangeLabel.toLowerCase()})
               </p>
             </div>
             <div className="flex flex-wrap gap-3 text-xs text-slate-400">
@@ -82,14 +287,20 @@ export default function OverviewSection() {
             </div>
           </CardHeader>
           <CardContent>
-            <TransactionChart />
+            <TransactionChart
+              labels={chartLabels}
+              transactions={
+                stats.charts.transactionsDisputes.datasets.transactions
+              }
+              disputes={stats.charts.transactionsDisputes.datasets.disputes}
+            />
             <p className="text-xs text-slate-400 mt-3">
-              Suspicious or blocked flows are excluded from the main curve and visible in the risk engine.
+              Suspicious or blocked flows are excluded from the main curve and
+              visible in the risk engine.
             </p>
           </CardContent>
         </Card>
 
-        {/* Alerts Card */}
         <Card>
           <CardHeader>
             <CardTitle>Live alerts</CardTitle>
@@ -101,7 +312,6 @@ export default function OverviewSection() {
         </Card>
       </div>
 
-      {/* Flow Summary Table */}
       <Card>
         <CardHeader>
           <CardTitle>Flow Summary</CardTitle>
@@ -112,85 +322,46 @@ export default function OverviewSection() {
               <TableRow>
                 <TableHead>Flow</TableHead>
                 <TableHead>Today</TableHead>
-                <TableHead>Last 7 days</TableHead>
+                <TableHead>{rangeLabel}</TableHead>
                 <TableHead>Trend</TableHead>
                 <TableHead>Status</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              <TableRow>
-                <TableCell>Total transactions</TableCell>
-                <TableCell>18,420</TableCell>
-                <TableCell>112,380</TableCell>
-                <TableCell>
-                  <Badge variant="success" size="sm">
-                    <span className="w-3 h-3">↑</span>+11.2%
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  <Badge variant="muted" size="sm">Healthy</Badge>
-                </TableCell>
-              </TableRow>
-              <TableRow>
-                <TableCell>Actions created</TableCell>
-                <TableCell>312</TableCell>
-                <TableCell>2,104</TableCell>
-                <TableCell>
-                  <Badge variant="success" size="sm">
-                    <span className="w-3 h-3">↑</span>+6.5%
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  <Badge variant="muted" size="sm">Normal</Badge>
-                </TableCell>
-              </TableRow>
-              <TableRow>
-                <TableCell>New organisations</TableCell>
-                <TableCell>17</TableCell>
-                <TableCell>86</TableCell>
-                <TableCell>
-                  <Badge variant="warning" size="sm">
-                    <span className="w-3 h-3">→</span>Stable
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  <Badge variant="muted" size="sm">Review docs</Badge>
-                </TableCell>
-              </TableRow>
-              <TableRow>
-                <TableCell>Refunds processed</TableCell>
-                <TableCell>64</TableCell>
-                <TableCell>402</TableCell>
-                <TableCell>
-                  <Badge variant="warning" size="sm">
-                    <span className="w-3 h-3">↑</span>+2.1%
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  <Badge variant="warning" size="sm">Monitor</Badge>
-                </TableCell>
-              </TableRow>
-              <TableRow>
-                <TableCell>Failed / blocked</TableCell>
-                <TableCell>0.7%</TableCell>
-                <TableCell>0.8%</TableCell>
-                <TableCell>
-                  <Badge variant="success" size="sm">
-                    <span className="w-3 h-3">↓</span>-0.1 pt
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  <Badge variant="success" size="sm">OK</Badge>
-                </TableCell>
-              </TableRow>
+              {stats.table.flowSummary.map((item) => {
+                const trendBadge = getTrendBadge(item);
+                return (
+                  <TableRow key={item.key}>
+                    <TableCell>{item.label}</TableCell>
+                    <TableCell>
+                      {item.key.includes("rate") || item.key.includes("blocked")
+                        ? `${Number(item.today).toFixed(2)}%`
+                        : formatNumber(Number(item.today))}
+                    </TableCell>
+                    <TableCell>
+                      {item.key.includes("rate") || item.key.includes("blocked")
+                        ? `${Number(item.rangeTotal).toFixed(2)}%`
+                        : formatNumber(Number(item.rangeTotal))}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={trendBadge.variant} size="sm">
+                        {trendBadge.text}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={getStatusVariant(item.status)} size="sm">
+                        {item.status}
+                      </Badge>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         </CardContent>
       </Card>
 
-      {/* Financial & Events Grid */}
       <div className="grid grid-cols-1 xl:grid-cols-5 gap-6">
-        {/* Financial snapshot */}
         <Card className="xl:col-span-3">
           <CardHeader>
             <CardTitle>Financial snapshot</CardTitle>
@@ -199,79 +370,40 @@ export default function OverviewSection() {
           <CardContent>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <MiniKPI
-                label="Float on main bank account"
-                value="€6,420,000"
-                meta="All currencies converted to EUR"
+                label="Wallets"
+                value={formatNumber(stats.counts.wallets.total)}
+                meta={`${formatNumber(stats.counts.wallets.active)} active in ${rangeLabel.toLowerCase()}`}
               />
               <MiniKPI
-                label="Funds reserved (disputes & holds)"
-                value="€182,400"
-                meta="Across 241 transactions"
+                label="Completed transactions"
+                value={formatNumber(stats.counts.transactions.completed)}
+                meta={`In ${rangeLabel.toLowerCase()} period`}
               />
               <MiniKPI
-                label="QC revenue (last 30 days)"
-                value="€42,380"
-                meta="Fees, commissions, FX margin"
+                label="Pending transactions"
+                value={formatNumber(stats.counts.transactions.pending)}
+                meta={`Pending in ${rangeLabel.toLowerCase()}`}
               />
               <MiniKPI
-                label="Avg dispute resolution time"
-                value="2.4 days"
-                meta="From open to admin decision"
+                label="Failed / cancelled"
+                value={formatNumber(
+                  stats.counts.transactions.failedOrCancelled,
+                )}
+                meta={`In ${rangeLabel.toLowerCase()} period`}
               />
             </div>
           </CardContent>
         </Card>
 
-        {/* Today's top events */}
         <Card className="xl:col-span-2">
           <CardHeader>
-            <CardTitle>Today's top events</CardTitle>
+            <CardTitle>Flow by type</CardTitle>
           </CardHeader>
           <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Entity</TableHead>
-                  <TableHead>Details</TableHead>
-                  <TableHead>When</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                <TableRow>
-                  <TableCell>
-                    <Badge variant="success" size="sm">Org approved</Badge>
-                  </TableCell>
-                  <TableCell>Simba Express</TableCell>
-                  <TableCell>Category: Transport • Action permissions granted</TableCell>
-                  <TableCell>09:41</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell>
-                    <Badge variant="warning" size="sm">Org locked</Badge>
-                  </TableCell>
-                  <TableCell>NGO FutureCare</TableCell>
-                  <TableCell>Wallet force-locked due to AML alert</TableCell>
-                  <TableCell>08:55</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell>
-                    <Badge variant="danger" size="sm">Rule triggered</Badge>
-                  </TableCell>
-                  <TableCell>Action VT-552</TableCell>
-                  <TableCell>Duplicate seat scans detected</TableCell>
-                  <TableCell>08:16</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell>
-                    <Badge variant="muted" size="sm">Config change</Badge>
-                  </TableCell>
-                  <TableCell>Fees</TableCell>
-                  <TableCell>Donation commission set to 1.2% for NGOs</TableCell>
-                  <TableCell>07:22</TableCell>
-                </TableRow>
-              </TableBody>
-            </Table>
+            <FlowChart
+              labels={stats.charts.flowByType.labels}
+              series={stats.charts.flowByType.series}
+            />
           </CardContent>
         </Card>
       </div>

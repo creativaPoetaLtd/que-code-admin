@@ -68,3 +68,280 @@ export interface PermissionsResponse {
   success: boolean;
   data: Permission[];
 }
+
+export type DashboardRange = "today" | "7d" | "30d" | "90d" | "12m" | "custom";
+
+export interface DashboardFlowSummaryItem {
+  key: string;
+  label: string;
+  today: number;
+  rangeTotal: number;
+  trendPercent?: number;
+  trendPoints?: number;
+  status: string;
+}
+
+export interface DashboardStatisticsData {
+  range: {
+    key: DashboardRange;
+    startDate: string;
+    endDate: string;
+    previousStartDate: string;
+    previousEndDate: string;
+    bucket: "hour" | "day" | "month";
+  };
+  kpis: {
+    totalUsers: {
+      total: number;
+      verified: number;
+      newInRange: number;
+      trendPercent: number;
+    };
+    organizations: {
+      total: number;
+      pending: number;
+      newInRange: number;
+      trendPercent: number;
+    };
+    volume: {
+      totalInRange: number;
+      completedInRange: number;
+      trendPercent: number;
+    };
+    riskFraud: {
+      flaggedCount: number;
+      ratePercent: number;
+      trendPoints: number;
+    };
+  };
+  counts: {
+    wallets: {
+      total: number;
+      active: number;
+    };
+    transactions: {
+      total: number;
+      completed: number;
+      pending: number;
+      failedOrCancelled: number;
+    };
+    actions: {
+      createdToday: number;
+      createdInRange: number;
+      trendPercent: number;
+    };
+  };
+  charts: {
+    transactionsDisputes: {
+      labels: string[];
+      datasets: {
+        transactions: number[];
+        disputes: number[];
+      };
+    };
+    flowByType: {
+      labels: string[];
+      series: {
+        transfer: number[];
+        payment: number[];
+        donation: number[];
+        vote: number[];
+        topup: number[];
+        withdrawal: number[];
+      };
+    };
+    sparklines: {
+      users: number[];
+      organizations: number[];
+      volume: number[];
+      risk: number[];
+    };
+  };
+  table: {
+    flowSummary: DashboardFlowSummaryItem[];
+  };
+  meta: {
+    generatedAt: string;
+    currency: string;
+  };
+}
+
+export interface DashboardStatisticsResponse {
+  success: boolean;
+  data: DashboardStatisticsData;
+}
+
+export interface AdminWallet {
+  id: string;
+  userId: string | null;
+  organizationId: string | null;
+  groupId: string | null;
+  ownerName: string;
+  ownerType: "user" | "organization" | "action";
+  balance: number;
+  currency: string;
+  isActive: boolean;
+  restrictionsCount: number;
+  totalRestricted: number;
+  availableBalance: number;
+  transactionCount: number;
+  lastTransaction: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AdminWalletsResponse {
+  success: boolean;
+  data: AdminWallet[];
+  statistics: {
+    total: number;
+    active: number;
+    inactive: number;
+    users: number;
+    organizations: number;
+    actions: number;
+  };
+  pagination: PaginationMeta;
+}
+
+export interface AdminRestriction {
+  id: string;
+  walletId: string;
+  walletOwner: string;
+  walletOwnerType: "user" | "organization" | "action";
+  categoryId: string;
+  categoryName: string;
+  categoryDescription: string;
+  amount: number;
+  usedAmount: number;
+  remainingAmount: number;
+  transactionCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AdminRestrictionsResponse {
+  success: boolean;
+  data: AdminRestriction[];
+  statistics: {
+    total: number;
+    active: number;
+    exhausted: number;
+    unused: number;
+    totalAllocated: number;
+    totalUsed: number;
+    totalRemaining: number;
+  };
+  pagination: PaginationMeta;
+}
+
+export type ActionType =
+  | "ticket"
+  | "transport"
+  | "service"
+  | "subscription"
+  | "payment"
+  | "donation"
+  | "vote"
+  | "booking"
+  | "license"
+  | "membership"
+  | "rental"
+  | "group";
+
+export type ActionStatus = "draft" | "published" | "archived" | "suspended";
+
+export type ActionDisplayLayout = "mosaic" | "list" | "icons" | "card";
+
+export interface AdminAction {
+  id: string;
+  organizationId: string;
+  type: ActionType;
+  name: string;
+  slug: string;
+  displayLayout: ActionDisplayLayout;
+  coverImage: string | null;
+  shortDescription: string | null;
+  description: string | null;
+  currency: string;
+  taxProfileId: string | null;
+  pricing: {
+    mode: "fixed" | "free" | "range" | "tiered";
+    amount?: number;
+    min?: number;
+    max?: number;
+  };
+  availability: any;
+  visibility: {
+    mode: "public" | "unlisted" | "private";
+    whitelist?: string[];
+  };
+  buyerFields: string[];
+  fulfillment: {
+    storeOnBuyerQR: boolean;
+    objectType?: "eticket" | "badge" | "license" | "membership";
+    postPurchaseMessage?: string;
+  };
+  policy: any;
+  webhooks: any;
+  customFields: any;
+  status: ActionStatus;
+  dedicatedQrCode: string | null;
+  createdAt: string;
+  updatedAt: string;
+  organization?: {
+    id: string;
+    name: string;
+    email: string;
+  };
+}
+
+export interface AdminActionsResponse {
+  success: boolean;
+  data: AdminAction[];
+  statistics: {
+    total: number;
+    draft: number;
+    published: number;
+    archived: number;
+    suspended: number;
+  };
+  pagination: PaginationMeta;
+}
+
+export interface AdminSubAction {
+  id: string;
+  actionId: string;
+  name: string;
+  description: string | null;
+  price: number;
+  stock: number | null;
+  stockReserved: number;
+  variants: any;
+  metadata: any;
+  isActive: boolean;
+  sortOrder: number;
+  coverImage: string | null;
+  dedicatedQrCodeData: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AdminSubActionsResponse {
+  success: boolean;
+  data: AdminSubAction[];
+  statistics: {
+    total: number;
+    active: number;
+    inactive: number;
+    withStock: number;
+    unlimited: number;
+    soldOut: number;
+  };
+  action: {
+    id: string;
+    name: string;
+    type: ActionType;
+    status: ActionStatus;
+  };
+}

@@ -1,6 +1,12 @@
 import axios from "axios";
 import {
   AdminUser,
+  AdminWalletsResponse,
+  AdminRestrictionsResponse,
+  AdminActionsResponse,
+  AdminSubActionsResponse,
+  DashboardRange,
+  DashboardStatisticsResponse,
   UsersResponse,
   RolesResponse,
   PermissionsResponse,
@@ -45,12 +51,16 @@ export const adminAPI = {
 
   updateUserStatus: async (
     id: string,
-    data: { approvalStatus?: boolean; isVerified?: boolean }
+    data: { approvalStatus?: boolean; isVerified?: boolean },
   ) => {
     const token = getAdminToken();
-    const response = await axios.put(`${BASE_API_URL}/users/${id}/status`, data, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const response = await axios.put(
+      `${BASE_API_URL}/users/${id}/status`,
+      data,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      },
+    );
     return response.data;
   },
 
@@ -61,7 +71,7 @@ export const adminAPI = {
       { userId, roleId },
       {
         headers: { Authorization: `Bearer ${token}` },
-      }
+      },
     );
     return response.data;
   },
@@ -100,7 +110,7 @@ export const adminAPI = {
       lastName?: string;
       isVerified?: boolean;
       approvalStatus?: boolean;
-    }
+    },
   ) => {
     const token = getAdminToken();
     const response = await axios.put(`${BASE_API_URL}/users/${id}`, data, {
@@ -153,7 +163,7 @@ export const adminAPI = {
       name?: string;
       description?: string;
       permissionIds?: string[];
-    }
+    },
   ) => {
     const token = getAdminToken();
     const response = await axios.put(`${BASE_API_URL}/roles/${id}`, data, {
@@ -178,7 +188,7 @@ export const adminAPI = {
       { permissionIds },
       {
         headers: { Authorization: `Bearer ${token}` },
-      }
+      },
     );
     return response.data;
   },
@@ -190,7 +200,7 @@ export const adminAPI = {
       `${BASE_API_URL}/roles/${roleId}/permissions/${permissionId}`,
       {
         headers: { Authorization: `Bearer ${token}` },
-      }
+      },
     );
     return response.data;
   },
@@ -201,7 +211,7 @@ export const adminAPI = {
       `${BASE_API_URL}/permissions`,
       {
         headers: { Authorization: `Bearer ${token}` },
-      }
+      },
     );
     return response.data;
   },
@@ -224,12 +234,16 @@ export const adminAPI = {
       name?: string;
       description?: string;
       category?: string;
-    }
+    },
   ) => {
     const token = getAdminToken();
-    const response = await axios.put(`${BASE_API_URL}/permissions/${id}`, data, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const response = await axios.put(
+      `${BASE_API_URL}/permissions/${id}`,
+      data,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      },
+    );
     return response.data;
   },
 
@@ -266,6 +280,217 @@ export const adminAPI = {
     const response = await axios.get(`${BASE_API_URL}/transactions/${id}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
+    return response.data;
+  },
+
+  getDashboardStatistics: async (params?: {
+    range?: DashboardRange;
+    bucket?: "hour" | "day" | "month";
+    startDate?: string;
+    endDate?: string;
+  }) => {
+    const token = getAdminToken();
+    const response = await axios.get<DashboardStatisticsResponse>(
+      `${BASE_API_URL}/admin/dashboard/statistics`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+        params,
+      },
+    );
+    return response.data;
+  },
+
+  getAllWallets: async (params?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    ownerType?: "all" | "user" | "organization" | "action";
+    status?: "all" | "active" | "inactive";
+    sortBy?:
+      | "ownerName"
+      | "ownerType"
+      | "balance"
+      | "transactionCount"
+      | "updatedAt"
+      | "createdAt";
+    sortDirection?: "asc" | "desc";
+  }) => {
+    const token = getAdminToken();
+    const response = await axios.get<AdminWalletsResponse>(
+      `${BASE_API_URL}/transactions/wallets/all`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+        params,
+      },
+    );
+    return response.data;
+  },
+
+  getAllRestrictions: async (params?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    categoryId?: string;
+    sortBy?:
+      | "walletOwner"
+      | "categoryName"
+      | "amount"
+      | "remainingAmount"
+      | "transactionCount"
+      | "updatedAt"
+      | "createdAt";
+    sortDirection?: "asc" | "desc";
+  }) => {
+    const token = getAdminToken();
+    const response = await axios.get<AdminRestrictionsResponse>(
+      `${BASE_API_URL}/transactions/restrictions/all`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+        params,
+      },
+    );
+    return response.data;
+  },
+
+  createRestriction: async (data: {
+    walletId: string;
+    categoryId: string;
+    amount: number;
+  }) => {
+    const token = getAdminToken();
+    const response = await axios.post(
+      `${BASE_API_URL}/transactions/restrictions`,
+      data,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      },
+    );
+    return response.data;
+  },
+
+  updateRestriction: async (id: string, data: { amount: number }) => {
+    const token = getAdminToken();
+    const response = await axios.put(
+      `${BASE_API_URL}/transactions/restrictions/${id}`,
+      data,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      },
+    );
+    return response.data;
+  },
+
+  deleteRestriction: async (id: string) => {
+    const token = getAdminToken();
+    const response = await axios.delete(
+      `${BASE_API_URL}/transactions/restrictions/${id}`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      },
+    );
+    return response.data;
+  },
+
+  // Helper endpoints for restriction management
+  getTransactionCategories: async () => {
+    const token = getAdminToken();
+    const response = await axios.get(
+      `${BASE_API_URL}/transactions/categories`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      },
+    );
+    return response.data;
+  },
+
+  // Action Management
+  getAllActions: async (params?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    status?: "draft" | "published" | "archived" | "suspended";
+    type?: string;
+    organizationId?: string;
+    sortBy?: "name" | "type" | "status" | "createdAt" | "updatedAt";
+    sortDirection?: "asc" | "desc";
+  }) => {
+    const token = getAdminToken();
+    const response = await axios.get<AdminActionsResponse>(
+      `${BASE_API_URL}/admin/actions`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+        params,
+      },
+    );
+    return response.data;
+  },
+
+  getActionById: async (id: string) => {
+    const token = getAdminToken();
+    const response = await axios.get(`${BASE_API_URL}/admin/actions/${id}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+  },
+
+  updateActionStatus: async (
+    id: string,
+    data: { status: "draft" | "published" | "archived" },
+  ) => {
+    const token = getAdminToken();
+    const response = await axios.put(
+      `${BASE_API_URL}/admin/actions/${id}/status`,
+      data,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      },
+    );
+    return response.data;
+  },
+
+  deleteAction: async (id: string) => {
+    const token = getAdminToken();
+    const response = await axios.delete(`${BASE_API_URL}/admin/actions/${id}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+  },
+
+  suspendAction: async (id: string, data: { reason?: string }) => {
+    const token = getAdminToken();
+    const response = await axios.put(
+      `${BASE_API_URL}/admin/actions/${id}/suspend`,
+      data,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      },
+    );
+    return response.data;
+  },
+
+  unsuspendAction: async (
+    id: string,
+    data: { newStatus?: "draft" | "published" },
+  ) => {
+    const token = getAdminToken();
+    const response = await axios.put(
+      `${BASE_API_URL}/admin/actions/${id}/unsuspend`,
+      data,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      },
+    );
+    return response.data;
+  },
+
+  getActionSubActions: async (id: string) => {
+    const token = getAdminToken();
+    const response = await axios.get(
+      `${BASE_API_URL}/admin/actions/${id}/sub-actions`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      },
+    );
     return response.data;
   },
 };

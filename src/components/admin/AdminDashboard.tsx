@@ -8,6 +8,7 @@ import UsersSection from "./sections/UsersSection";
 import OrganizationsSection from "./sections/OrganizationsSection";
 import TransactionsSection from "./sections/TransactionsSection";
 import WalletSection from "./sections/WalletSection";
+import ActionSection from "./sections/ActionSection";
 import AdminsSection from "./sections/AdminsSection";
 import { AdminModalsContainer } from "./AdminModalsContainer";
 import { cn } from "@/lib/utils";
@@ -46,10 +47,6 @@ const viewConfig = {
   merchants: {
     title: "Merchants",
     subtitle: "Shops, transport companies, ticketing & online merchants",
-  },
-  analytics: {
-    title: "Analytics",
-    subtitle: "High-level dashboards on users, orgs, and money flows",
   },
   admins: {
     title: "Admin roles & access",
@@ -143,7 +140,7 @@ export default function AdminDashboard() {
       case "disputes":
         return <PlaceholderSection title="Disputes & Chargebacks" />;
       case "actions":
-        return <PlaceholderSection title="QC Pro Actions" />;
+        return <ActionSection />;
       case "merchants":
         return <PlaceholderSection title="Merchants" />;
       case "analytics":
