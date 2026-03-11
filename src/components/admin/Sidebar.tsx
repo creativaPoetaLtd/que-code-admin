@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { cn } from "@/lib/utils";
 import {
   BarChart3,
@@ -27,7 +28,6 @@ import Badge from "./ui/Badge";
 
 interface SidebarProps {
   activeView: string;
-  onViewChange: (view: string) => void;
   isMobileOpen: boolean;
   onMobileToggle: () => void;
 }
@@ -84,7 +84,6 @@ const navigationSections = [
 
 export default function Sidebar({
   activeView,
-  onViewChange,
   isMobileOpen,
   onMobileToggle,
 }: SidebarProps) {
@@ -139,14 +138,16 @@ export default function Sidebar({
                 {section.items.map((item) => {
                   const Icon = item.icon;
                   const isActive = activeView === item.id;
+                  const href =
+                    item.id === "overview"
+                      ? "/dashboard"
+                      : `/dashboard/${item.id}`;
 
                   return (
-                    <button
+                    <Link
                       key={item.id}
-                      onClick={() => {
-                        onViewChange(item.id);
-                        onMobileToggle(); // Close mobile sidebar when item is clicked
-                      }}
+                      href={href}
+                      onClick={onMobileToggle} // Close mobile sidebar when item is clicked
                       className={cn(
                         "w-full flex items-center gap-2 px-2 py-2 rounded-xl text-sm transition-all",
                         "border border-transparent",
@@ -168,7 +169,7 @@ export default function Sidebar({
                           {item.badge.text}
                         </Badge>
                       )}
-                    </button>
+                    </Link>
                   );
                 })}
               </nav>

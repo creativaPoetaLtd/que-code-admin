@@ -121,9 +121,8 @@ export default function OrganizationModal({
       newErrors.tinNumber = "TIN number is required";
     }
 
-    if (!organization && !formData.password.trim()) {
-      newErrors.password = "Password is required";
-    } else if (formData.password && formData.password.length < 6) {
+    // Password is optional - backend will generate one if not provided
+    if (formData.password && formData.password.length < 6) {
       newErrors.password = "Password must be at least 6 characters";
     }
 
@@ -219,7 +218,9 @@ export default function OrganizationModal({
         {!organization && (
           <div className="p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm">
             <strong>Admin Note:</strong> Creating an organization will
-            automatically approve it and send a verification email to the owner.
+            automatically approve it and send login credentials to the owner's
+            email. If no password is provided, one will be generated
+            automatically.
           </div>
         )}
 
@@ -417,7 +418,7 @@ export default function OrganizationModal({
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Initial Password *
+                Initial Password (optional - will be auto-generated if empty)
               </label>
               <input
                 type="password"
@@ -428,13 +429,14 @@ export default function OrganizationModal({
                 className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent ${
                   errors.password ? "border-red-500" : "border-gray-300"
                 }`}
-                placeholder="Enter initial password"
+                placeholder="Leave empty to auto-generate"
               />
               {errors.password && (
                 <p className="text-red-500 text-xs mt-1">{errors.password}</p>
               )}
               <p className="text-xs text-gray-500 mt-1">
-                This password will be sent to the owner via email
+                If left empty, a secure password will be generated and sent to
+                the owner's email
               </p>
             </div>
           </div>

@@ -11,7 +11,6 @@ const getAdminToken = (): string | null => {
 };
 
 export const organizationAPI = {
-  
   getAllOrganizations: async (params?: {
     page?: number;
     limit?: number;
@@ -45,12 +44,9 @@ export const organizationAPI = {
 
   getPendingOrganizations: async () => {
     const token = getAdminToken();
-    const response = await axios.get(
-      `${BASE_API_URL}/organizations/pending`,
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      },
-    );
+    const response = await axios.get(`${BASE_API_URL}/organizations/pending`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
     return response.data;
   },
 
@@ -60,9 +56,13 @@ export const organizationAPI = {
     if (!(data instanceof FormData)) {
       headers["Content-Type"] = "application/json";
     }
-    const response = await axios.post(`${BASE_API_URL}/organizations`, data, {
-      headers,
-    });
+    const response = await axios.post(
+      `${BASE_API_URL}/organizations/admin/create`,
+      data,
+      {
+        headers,
+      },
+    );
     return response.data;
   },
 

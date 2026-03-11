@@ -187,7 +187,9 @@ export default function ActionSection() {
             archived: response.statistics.archived || 0,
             suspended: response.statistics.suspended || 0,
           });
-          setTotalCount(response.pagination.total);
+          setTotalCount(
+            response.pagination.totalItems || response.pagination.total || 0,
+          );
           setTotalPages(response.pagination.totalPages);
         }
       } catch (error: any) {
@@ -301,7 +303,9 @@ export default function ActionSection() {
           archived: response.statistics.archived || 0,
           suspended: response.statistics.suspended || 0,
         });
-        setTotalCount(response.pagination.total);
+        setTotalCount(
+          response.pagination.totalItems || response.pagination.total || 0,
+        );
         setTotalPages(response.pagination.totalPages);
       }
     } catch (error: any) {

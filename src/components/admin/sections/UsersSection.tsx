@@ -12,36 +12,34 @@ import Table, {
   TableHead,
   TableCell,
   TableMainText,
-  TableSubText,
   TableActions,
 } from "../ui/Table";
 import { IconButton } from "../ui/Button";
 import {
   Search,
-  Filter,
   Download,
   Eye,
   Edit,
   Ban,
   CheckCircle,
-  Clock,
   Users as UsersIcon,
-  UserCheck,
-  UserX,
   RefreshCw,
   Shield,
   ChevronLeft,
   ChevronRight,
   Key,
+  UserPlus,
 } from "lucide-react";
 import adminAPI from "@/services/adminService";
 import { AdminUser, Role } from "@/types/admin.types";
 import { useToast } from "@/hooks/use-toast";
+import { useAdminModal } from "../AdminModalsContainer";
 import RolesTab from "./RolesTab";
 import PermissionsTab from "./PermissionsTab";
 
 export default function UsersSection() {
   const { toast } = useToast();
+  const { openUserModal, refreshTrigger } = useAdminModal();
   const [activeTab, setActiveTab] = useState<"users" | "roles" | "permissions">(
     "users",
   );
@@ -60,12 +58,10 @@ export default function UsersSection() {
     suspended: 0,
   });
 
-  // Role assignment modal state
   const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
   const [selectedRole, setSelectedRole] = useState("");
   const [showRoleModal, setShowRoleModal] = useState(false);
 
-  // Admin role names to filter out
   const ADMIN_ROLES = [
     "super_admin",
     "admin",
@@ -76,7 +72,7 @@ export default function UsersSection() {
   useEffect(() => {
     loadUsers();
     loadRoles();
-  }, [currentPage, searchTerm, statusFilter]);
+  }, [currentPage, searchTerm, statusFilter, refreshTrigger]);
 
   const loadUsers = async () => {
     try {
@@ -96,16 +92,22 @@ export default function UsersSection() {
       });
 
       setUsers(regularUsers);
-      setTotalUsers(regularUsers.length);
-      setTotalPages(Math.ceil(regularUsers.length / 10));
 
-      // Calculate stats for regular users only
+      // Use API pagination metadata instead of recalculating based on filtered results
+      setTotalUsers(
+        response.pagination.totalItems || response.pagination.total || 0,
+      );
+      setTotalPages(response.pagination.totalPages);
+
+      // Calculate stats for regular users on current page
       const verified = regularUsers.filter((u) => u.isVerified).length;
       const pending = regularUsers.filter((u) => !u.approvalStatus).length;
       const suspended = regularUsers.filter(
         (u) => !u.isVerified && u.approvalStatus,
       ).length;
 
+      // Note: These stats are for the current page's filtered users only
+      // For accurate total stats, backend should provide filtered statistics
       setStats({
         total: regularUsers.length,
         verified,
@@ -114,6 +116,11 @@ export default function UsersSection() {
       });
     } catch (error) {
       console.error("Error loading users:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load users",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
@@ -320,7 +327,7 @@ export default function UsersSection() {
           {/* Main Users Table Card */}
           <Card>
             <CardHeader>
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-64">
                 <div>
                   <CardTitle>Regular Users</CardTitle>
                   <p className="text-sm text-gray-500 mt-1">
@@ -345,6 +352,14 @@ export default function UsersSection() {
                   <Button variant="ghost" size="sm">
                     <Download className="w-4 h-4 mr-2" />
                     Export
+                  </Button>
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    onClick={() => openUserModal(null)}
+                  >
+                    <UserPlus className="w-4 h-4 mr-2" />
+                    Create User
                   </Button>
                 </div>
               </div>
@@ -386,6 +401,18 @@ export default function UsersSection() {
               {loading ? (
                 <div className="flex justify-center items-center py-12">
                   <RefreshCw className="w-8 h-8 animate-spin text-gray-400" />
+                </div>
+              ) : users.length === 0 ? (
+                <div className="text-center py-12">
+                  <UsersIcon className="w-12 h-12 mx-auto text-gray-400 mb-4" />
+                  <p className="text-gray-600 font-medium mb-2">
+                    No regular users found on this page
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    {currentPage > 1
+                      ? "This page may only contain admin users (filtered out). Try going back to previous pages."
+                      : "Try adjusting your filters or search criteria."}
+                  </p>
                 </div>
               ) : (
                 <>
@@ -458,6 +485,14 @@ export default function UsersSection() {
                               <IconButton
                                 variant="ghost"
                                 size="sm"
+                                title="Edit User"
+                                onClick={() => openUserModal(user)}
+                              >
+                                <Edit className="w-4 h-4" />
+                              </IconButton>
+                              <IconButton
+                                variant="ghost"
+                                size="sm"
                                 title="Assign Role"
                                 onClick={() => handleOpenRoleModal(user)}
                               >
@@ -493,7 +528,8 @@ export default function UsersSection() {
                   {/* Pagination */}
                   <div className="flex items-center justify-between mt-6 pt-6 border-t border-gray-200">
                     <div className="text-sm text-gray-600">
-                      Showing {users.length} of {totalUsers} users
+                      Showing {users.length} regular user(s) on page{" "}
+                      {currentPage} of {totalPages}
                     </div>
                     <div className="flex gap-2">
                       <Button

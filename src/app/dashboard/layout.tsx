@@ -1,21 +1,14 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { usePathname } from "next/navigation";
-import Sidebar from "./Sidebar";
-import Header from "./Header";
-import OverviewSection from "./sections/OverviewSection";
-import UsersSection from "./sections/UsersSection";
-import OrganizationsSection from "./sections/OrganizationsSection";
-import TransactionsSection from "./sections/TransactionsSection";
-import WalletSection from "./sections/WalletSection";
-import ActionSection from "./sections/ActionSection";
-import AdminsSection from "./sections/AdminsSection";
-import { AdminModalsContainer } from "./AdminModalsContainer";
-import { cn } from "@/lib/utils";
+import { useEffect, useState } from "react";
+import { useRouter, usePathname } from "next/navigation";
+import { useAdminAuth } from "@/context/AdminAuthContext";
+import Sidebar from "@/components/admin/Sidebar";
+import Header from "@/components/admin/Header";
+import { AdminModalsContainer } from "@/components/admin/AdminModalsContainer";
 
 // View titles and subtitles
-const viewConfig = {
+const viewConfig: Record<string, { title: string; subtitle: string }> = {
   overview: {
     title: "Super Admin overview",
     subtitle: "Global status of users, orgs, wallets & risk",
@@ -87,7 +80,13 @@ const viewConfig = {
   },
 };
 
-export default function AdminDashboard() {
+export default function DashboardLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const { isAuthenticated, loading } = useAdminAuth();
+  const router = useRouter();
   const pathname = usePathname();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -95,6 +94,12 @@ export default function AdminDashboard() {
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  useEffect(() => {
+    if (!loading && !isAuthenticated) {
+      router.push("/auth/login");
+    }
+  }, [isAuthenticated, loading, router]);
 
   // Extract the active view from the URL path
   const getActiveView = () => {
@@ -105,12 +110,26 @@ export default function AdminDashboard() {
   };
 
   const activeView = getActiveView();
-  const currentView =
-    viewConfig[activeView as keyof typeof viewConfig] || viewConfig.overview;
+  const currentView = viewConfig[activeView] || viewConfig.overview;
 
   const handleMobileToggle = () => {
     setIsMobileOpen(!isMobileOpen);
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-green-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return null;
+  }
 
   // Prevent hydration mismatch by not rendering until mounted
   if (!mounted) {
@@ -135,47 +154,6 @@ export default function AdminDashboard() {
     );
   }
 
-  const renderActiveSection = () => {
-    switch (activeView) {
-      case "overview":
-        return <OverviewSection />;
-      case "users":
-        return <UsersSection />;
-      case "organizations":
-        return <OrganizationsSection />;
-      case "transactions":
-        return <TransactionsSection />;
-      case "financial":
-        return <WalletSection />;
-      case "disputes":
-        return <PlaceholderSection title="Disputes & Chargebacks" />;
-      case "actions":
-        return <ActionSection />;
-      case "merchants":
-        return <PlaceholderSection title="Merchants" />;
-      case "analytics":
-        return <PlaceholderSection title="Analytics" />;
-      case "admins":
-        return <AdminsSection />;
-      case "config":
-        return <PlaceholderSection title="Platform Configuration" />;
-      case "logs":
-        return <PlaceholderSection title="Audit Logs" />;
-      case "support":
-        return <PlaceholderSection title="Support Center" />;
-      case "queries":
-        return <PlaceholderSection title="User Queries" />;
-      case "health":
-        return <PlaceholderSection title="System Health" />;
-      case "security":
-        return <PlaceholderSection title="Security & Compliance" />;
-      case "settings":
-        return <PlaceholderSection title="Settings" />;
-      default:
-        return <OverviewSection />;
-    }
-  };
-
   return (
     <AdminModalsContainer>
       <div className="min-h-screen flex bg-gray-50 text-gray-900">
@@ -192,23 +170,9 @@ export default function AdminDashboard() {
             onMobileMenuToggle={handleMobileToggle}
           />
 
-          <main className="flex-1 p-4 lg:p-6 overflow-y-auto">
-            <div className="animate-fadeIn">{renderActiveSection()}</div>
-          </main>
+          <main className="flex-1 p-4 lg:p-6 overflow-y-auto">{children}</main>
         </div>
       </div>
     </AdminModalsContainer>
-  );
-}
-
-// Placeholder component for sections not yet implemented
-function PlaceholderSection({ title }: { title: string }) {
-  return (
-    <div className="flex items-center justify-center min-h-96 bg-white/50 rounded-2xl border border-gray-200">
-      <div className="text-center text-gray-600">
-        <div className="text-xl font-semibold mb-2 text-gray-900">{title}</div>
-        <div className="text-sm">This section will be implemented soon.</div>
-      </div>
-    </div>
   );
 }

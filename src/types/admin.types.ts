@@ -47,10 +47,15 @@ export interface AdminUser {
 }
 
 export interface PaginationMeta {
-  total: number;
-  page: number;
-  limit: number;
+  currentPage?: number;
+  page?: number;
+  pageSize?: number;
+  limit?: number;
+  totalItems?: number;
+  total?: number;
   totalPages: number;
+  hasNextPage?: boolean;
+  hasPreviousPage?: boolean;
 }
 
 export interface UsersResponse {
@@ -344,4 +349,86 @@ export interface AdminSubActionsResponse {
     type: ActionType;
     status: ActionStatus;
   };
+}
+
+// Audit Logs
+export type AuditLogLevel = "info" | "warning" | "error" | "critical";
+
+export interface AuditLogUser {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+}
+
+export interface AuditLogOrganization {
+  id: string;
+  name: string;
+  email: string;
+}
+
+export interface AuditLog {
+  id: string;
+  userId: string | null;
+  organizationId: string | null;
+  action: string;
+  method: string;
+  endpoint: string;
+  statusCode: number;
+  ipAddress: string | null;
+  userAgent: string | null;
+  requestBody: Record<string, any> | null;
+  responseBody: Record<string, any> | null;
+  metadata: Record<string, any> | null;
+  duration: number | null;
+  level: AuditLogLevel;
+  createdAt: string;
+  updatedAt: string;
+  user?: AuditLogUser;
+  organization?: AuditLogOrganization;
+}
+
+export interface AuditLogFilters {
+  page?: number;
+  limit?: number;
+  search?: string;
+  level?: "all" | AuditLogLevel;
+  action?: string;
+  method?: "all" | "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
+  userId?: string;
+  organizationId?: string;
+  startDate?: string;
+  endDate?: string;
+  sortBy?:
+    | "createdAt"
+    | "statusCode"
+    | "duration"
+    | "level"
+    | "action"
+    | "endpoint"
+    | "method";
+  sortDirection?: "asc" | "desc";
+}
+
+export interface AuditLogStatistics {
+  total: number;
+  info: number;
+  warning: number;
+  error: number;
+  critical: number;
+  last24h: number;
+  last7d: number;
+}
+
+export interface AuditLogFilterOptions {
+  actions: string[];
+  methods: string[];
+  levels: AuditLogLevel[];
+}
+
+export interface AuditLogsResponse {
+  success: boolean;
+  data: AuditLog[];
+  pagination: PaginationMeta;
+  statistics: AuditLogStatistics;
 }

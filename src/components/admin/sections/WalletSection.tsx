@@ -341,7 +341,9 @@ export default function WalletSection() {
         if (response.success) {
           setWallets(response.data);
           setWalletStatistics(response.statistics);
-          setTotalWalletsCount(response.pagination.total);
+          setTotalWalletsCount(
+            response.pagination.totalItems || response.pagination.total || 0,
+          );
           setTotalPages(response.pagination.totalPages);
         }
       } catch (error: any) {
@@ -400,7 +402,9 @@ export default function WalletSection() {
         if (response.success) {
           setRestrictions(response.data);
           setRestrictionStatistics(response.statistics);
-          setTotalRestrictionsCount(response.pagination.total);
+          setTotalRestrictionsCount(
+            response.pagination.totalItems || response.pagination.total || 0,
+          );
           setRestrictionPages(response.pagination.totalPages);
         }
       } catch (error: any) {
@@ -616,7 +620,9 @@ export default function WalletSection() {
       if (response.success) {
         setRestrictions(response.data);
         setRestrictionStatistics(response.statistics);
-        setTotalRestrictionsCount(response.pagination.total);
+        setTotalRestrictionsCount(
+          response.pagination.totalItems || response.pagination.total || 0,
+        );
         setRestrictionPages(response.pagination.totalPages);
       }
     } catch (error: any) {
@@ -644,7 +650,9 @@ export default function WalletSection() {
         if (response.success) {
           setRestrictions(response.data);
           setRestrictionStatistics(response.statistics);
-          setTotalRestrictionsCount(response.pagination.total);
+          setTotalRestrictionsCount(
+            response.pagination.totalItems || response.pagination.total || 0,
+          );
           setRestrictionPages(response.pagination.totalPages);
         }
       } catch (error: any) {

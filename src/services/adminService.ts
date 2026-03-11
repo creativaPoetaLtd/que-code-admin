@@ -95,9 +95,13 @@ export const adminAPI = {
     roleId?: string;
   }) => {
     const token = getAdminToken();
-    const response = await axios.post(`${BASE_API_URL}/users`, data, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const response = await axios.post(
+      `${BASE_API_URL}/users/admin/create`,
+      data,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      },
+    );
     return response.data;
   },
 
