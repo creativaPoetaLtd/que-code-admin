@@ -20,6 +20,7 @@ import {
   Key,
   Edit,
   Trash2,
+  MoreHorizontal,
   Plus,
   RefreshCw,
   Filter,
@@ -50,6 +51,7 @@ export default function PermissionsTab() {
   const [deletePermissionId, setDeletePermissionId] = useState<string | null>(
     null,
   );
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const { openPermissionModal, refreshTrigger } = useAdminModal();
   const { toast } = useToast();
 
@@ -214,22 +216,50 @@ export default function PermissionsTab() {
                       </TableCell>
                       <TableCell>
                         <TableActions>
-                          <IconButton
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => openPermissionModal(permission)}
-                            title="Edit Permission"
-                          >
-                            <Edit className="w-4 h-4" />
-                          </IconButton>
-                          <IconButton
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setDeletePermissionId(permission.id)}
-                            title="Delete Permission"
-                          >
-                            <Trash2 className="w-4 h-4 text-red-500" />
-                          </IconButton>
+                          <div className="relative">
+                            <IconButton
+                              variant="ghost"
+                              size="sm"
+                              title="More actions"
+                              onClick={() =>
+                                setOpenMenuId(
+                                  openMenuId === permission.id
+                                    ? null
+                                    : permission.id,
+                                )
+                              }
+                            >
+                              <MoreHorizontal className="w-4 h-4" />
+                            </IconButton>
+
+                            {openMenuId === permission.id && (
+                              <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-10">
+                                <button
+                                  onClick={() => {
+                                    openPermissionModal(permission);
+                                    setOpenMenuId(null);
+                                  }}
+                                  className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
+                                >
+                                  <Edit className="w-4 h-4" />
+                                  Edit Permission
+                                </button>
+
+                                <hr className="my-1" />
+
+                                <button
+                                  onClick={() => {
+                                    setDeletePermissionId(permission.id);
+                                    setOpenMenuId(null);
+                                  }}
+                                  className="w-full text-left px-4 py-2 text-sm text-red-700 hover:bg-red-50 flex items-center gap-2"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                  Delete Permission
+                                </button>
+                              </div>
+                            )}
+                          </div>
                         </TableActions>
                       </TableCell>
                     </TableRow>

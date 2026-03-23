@@ -20,6 +20,7 @@ import {
   Download,
   Eye,
   Edit,
+  MoreHorizontal,
   Ban,
   CheckCircle,
   Users as UsersIcon,
@@ -36,6 +37,16 @@ import { useToast } from "@/hooks/use-toast";
 import { useAdminModal } from "../AdminModalsContainer";
 import RolesTab from "./RolesTab";
 import PermissionsTab from "./PermissionsTab";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export default function UsersSection() {
   const { toast } = useToast();
@@ -61,6 +72,16 @@ export default function UsersSection() {
   const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
   const [selectedRole, setSelectedRole] = useState("");
   const [showRoleModal, setShowRoleModal] = useState(false);
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const [userStatusDialog, setUserStatusDialog] = useState<{
+    open: boolean;
+    user: AdminUser | null;
+    action: "approve" | "suspend" | null;
+  }>({
+    open: false,
+    user: null,
+    action: null,
+  });
 
   const ADMIN_ROLES = [
     "super_admin",
@@ -140,8 +161,6 @@ export default function UsersSection() {
   };
 
   const handleApproveUser = async (userId: string) => {
-    if (!confirm("Are you sure you want to approve this user?")) return;
-
     try {
       await adminAPI.updateUserStatus(userId, {
         approvalStatus: true,
@@ -164,8 +183,6 @@ export default function UsersSection() {
   };
 
   const handleSuspendUser = async (userId: string) => {
-    if (!confirm("Are you sure you want to suspend this user?")) return;
-
     try {
       await adminAPI.updateUserStatus(userId, {
         approvalStatus: false,
@@ -475,49 +492,93 @@ export default function UsersSection() {
                           </TableCell>
                           <TableCell>
                             <TableActions>
-                              <IconButton
-                                variant="ghost"
-                                size="sm"
-                                title="View Details"
-                              >
-                                <Eye className="w-4 h-4" />
-                              </IconButton>
-                              <IconButton
-                                variant="ghost"
-                                size="sm"
-                                title="Edit User"
-                                onClick={() => openUserModal(user)}
-                              >
-                                <Edit className="w-4 h-4" />
-                              </IconButton>
-                              <IconButton
-                                variant="ghost"
-                                size="sm"
-                                title="Assign Role"
-                                onClick={() => handleOpenRoleModal(user)}
-                              >
-                                <Shield className="w-4 h-4" />
-                              </IconButton>
-                              {!user.approvalStatus && (
+                              <div className="relative">
                                 <IconButton
                                   variant="ghost"
                                   size="sm"
-                                  title="Approve User"
-                                  onClick={() => handleApproveUser(user.id)}
+                                  title="More actions"
+                                  onClick={() =>
+                                    setOpenMenuId(
+                                      openMenuId === user.id ? null : user.id,
+                                    )
+                                  }
                                 >
-                                  <CheckCircle className="w-4 h-4 text-green-600" />
+                                  <MoreHorizontal className="w-4 h-4" />
                                 </IconButton>
-                              )}
-                              {user.approvalStatus && (
-                                <IconButton
-                                  variant="ghost"
-                                  size="sm"
-                                  title="Suspend User"
-                                  onClick={() => handleSuspendUser(user.id)}
-                                >
-                                  <Ban className="w-4 h-4 text-red-600" />
-                                </IconButton>
-                              )}
+
+                                {openMenuId === user.id && (
+                                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-10">
+                                    <button
+                                      onClick={() => {
+                                        openUserModal(user);
+                                        setOpenMenuId(null);
+                                      }}
+                                      className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
+                                    >
+                                      <Eye className="w-4 h-4" />
+                                      View Details
+                                    </button>
+
+                                    <button
+                                      onClick={() => {
+                                        openUserModal(user);
+                                        setOpenMenuId(null);
+                                      }}
+                                      className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
+                                    >
+                                      <Edit className="w-4 h-4" />
+                                      Edit User
+                                    </button>
+
+                                    <button
+                                      onClick={() => {
+                                        handleOpenRoleModal(user);
+                                        setOpenMenuId(null);
+                                      }}
+                                      className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
+                                    >
+                                      <Shield className="w-4 h-4" />
+                                      Assign Role
+                                    </button>
+
+                                    <hr className="my-1" />
+
+                                    {!user.approvalStatus && (
+                                      <button
+                                        onClick={() => {
+                                          setUserStatusDialog({
+                                            open: true,
+                                            user,
+                                            action: "approve",
+                                          });
+                                          setOpenMenuId(null);
+                                        }}
+                                        className="w-full text-left px-4 py-2 text-sm text-green-700 hover:bg-green-50 flex items-center gap-2"
+                                      >
+                                        <CheckCircle className="w-4 h-4" />
+                                        Approve User
+                                      </button>
+                                    )}
+
+                                    {user.approvalStatus && (
+                                      <button
+                                        onClick={() => {
+                                          setUserStatusDialog({
+                                            open: true,
+                                            user,
+                                            action: "suspend",
+                                          });
+                                          setOpenMenuId(null);
+                                        }}
+                                        className="w-full text-left px-4 py-2 text-sm text-red-700 hover:bg-red-50 flex items-center gap-2"
+                                      >
+                                        <Ban className="w-4 h-4" />
+                                        Suspend User
+                                      </button>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
                             </TableActions>
                           </TableCell>
                         </TableRow>
@@ -561,6 +622,67 @@ export default function UsersSection() {
               )}
             </CardContent>
           </Card>
+
+          <AlertDialog
+            open={userStatusDialog.open}
+            onOpenChange={(open) => {
+              if (!open) {
+                setUserStatusDialog({ open: false, user: null, action: null });
+              }
+            }}
+          >
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>
+                  {userStatusDialog.action === "approve"
+                    ? "Approve User"
+                    : "Suspend User"}
+                </AlertDialogTitle>
+                <AlertDialogDescription>
+                  Are you sure you want to{" "}
+                  {userStatusDialog.action === "approve"
+                    ? "approve"
+                    : "suspend"}{" "}
+                  <strong>
+                    {userStatusDialog.user?.firstName}{" "}
+                    {userStatusDialog.user?.lastName}
+                  </strong>
+                  ?
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  className={
+                    userStatusDialog.action === "suspend"
+                      ? "bg-red-600 hover:bg-red-700"
+                      : ""
+                  }
+                  onClick={async () => {
+                    if (!userStatusDialog.user || !userStatusDialog.action) {
+                      return;
+                    }
+
+                    if (userStatusDialog.action === "approve") {
+                      await handleApproveUser(userStatusDialog.user.id);
+                    } else {
+                      await handleSuspendUser(userStatusDialog.user.id);
+                    }
+
+                    setUserStatusDialog({
+                      open: false,
+                      user: null,
+                      action: null,
+                    });
+                  }}
+                >
+                  {userStatusDialog.action === "approve"
+                    ? "Approve"
+                    : "Suspend"}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
 
           {/* Role Assignment Modal */}
           {showRoleModal && selectedUser && (

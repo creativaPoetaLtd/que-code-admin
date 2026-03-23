@@ -20,6 +20,7 @@ import {
   Shield,
   Edit,
   Trash2,
+  MoreHorizontal,
   Plus,
   RefreshCw,
   Users,
@@ -48,6 +49,7 @@ export default function RolesTab() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
   const [deleteRoleId, setDeleteRoleId] = useState<string | null>(null);
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const { openRoleModal, permissions, setPermissions, refreshTrigger } =
     useAdminModal();
   const { toast } = useToast();
@@ -102,17 +104,19 @@ export default function RolesTab() {
   const filteredRoles = roles.filter(
     (role) =>
       role.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      role.description?.toLowerCase().includes(searchTerm.toLowerCase()),
+      (role.description?.toLowerCase() || "").includes(
+        searchTerm.toLowerCase(),
+      ),
   );
 
-  const totalPages = Math.ceil(filteredRoles.length / itemsPerPage);
+  const totalPages = Math.max(1, Math.ceil(filteredRoles.length / itemsPerPage));
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const paginatedRoles = filteredRoles.slice(startIndex, endIndex);
 
   return (
     <div className="space-y-6">
-      {/* Stats */}
+      {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardContent className="pt-6">
@@ -152,7 +156,8 @@ export default function RolesTab() {
                 <p className="text-2xl font-bold text-gray-900">
                   {
                     roles.filter(
-                      (r) => !["super_admin", "admin", "user"].includes(r.name),
+                      (r) =>
+                        !["super_admin", "admin", "user"].includes(r.name),
                     ).length
                   }
                 </p>
@@ -267,26 +272,53 @@ export default function RolesTab() {
                         </TableCell>
                         <TableCell>
                           <TableActions>
-                            <IconButton
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => openRoleModal(role)}
-                              title="Edit Role"
-                            >
-                              <Edit className="w-4 h-4" />
-                            </IconButton>
-                            {!["super_admin", "admin", "user"].includes(
-                              role.name,
-                            ) && (
+                            <div className="relative">
                               <IconButton
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => setDeleteRoleId(role.id)}
-                                title="Delete Role"
+                                title="More actions"
+                                onClick={() =>
+                                  setOpenMenuId(
+                                    openMenuId === role.id ? null : role.id,
+                                  )
+                                }
                               >
-                                <Trash2 className="w-4 h-4 text-red-500" />
+                                <MoreHorizontal className="w-4 h-4" />
                               </IconButton>
-                            )}
+
+                              {openMenuId === role.id && (
+                                <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-10">
+                                  <button
+                                    onClick={() => {
+                                      openRoleModal(role);
+                                      setOpenMenuId(null);
+                                    }}
+                                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
+                                  >
+                                    <Edit className="w-4 h-4" />
+                                    Edit Role
+                                  </button>
+
+                                  {!["super_admin", "admin", "user"].includes(
+                                    role.name,
+                                  ) && (
+                                    <>
+                                      <hr className="my-1" />
+                                      <button
+                                        onClick={() => {
+                                          setDeleteRoleId(role.id);
+                                          setOpenMenuId(null);
+                                        }}
+                                        className="w-full text-left px-4 py-2 text-sm text-red-700 hover:bg-red-50 flex items-center gap-2"
+                                      >
+                                        <Trash2 className="w-4 h-4" />
+                                        Delete Role
+                                      </button>
+                                    </>
+                                  )}
+                                </div>
+                              )}
+                            </div>
                           </TableActions>
                         </TableCell>
                       </TableRow>
