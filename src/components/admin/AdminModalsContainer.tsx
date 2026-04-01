@@ -14,6 +14,17 @@ import CategoryModal from "./modals/CategoryModal";
 import OrganizationModal from "./modals/OrganizationModal";
 import ActionDetailModal from "./modals/ActionDetailModal";
 import SubActionsModal from "./modals/SubActionsModal";
+import GroupMembersPanel from "./modals/GroupMembersPanel";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Role, Permission, AdminUser, AdminAction } from "@/types/admin.types";
 import adminAPI from "@/services/adminService";
 import { organizationAPI } from "@/services/organizationService";
@@ -68,6 +79,13 @@ interface SubActionsStats {
   withStock: number;
   unlimited: number;
   soldOut: number;
+}
+
+interface AdminGroupForModal {
+  id: string;
+  name: string;
+  memberCount: number;
+  wallet?: { balance: number } | null;
 }
 
 interface AdminModalContextType {
@@ -132,6 +150,12 @@ interface AdminModalContextType {
   setCategories: (categories: Category[]) => void;
   refreshTrigger: number;
   triggerRefresh: () => void;
+  // Group Members Panel
+  openGroupMembersModal: (group: AdminGroupForModal, onMemberRemoved?: () => void) => void;
+  closeGroupMembersModal: () => void;
+  // Delete Group Dialog
+  openDeleteGroupDialog: (group: AdminGroupForModal, onConfirm: () => Promise<void> | void) => void;
+  closeDeleteGroupDialog: () => void;
 }
 
 const AdminModalContext = createContext<AdminModalContextType | undefined>(
@@ -198,6 +222,15 @@ export function AdminModalsContainer({ children }: AdminModalsContainerProps) {
   const [roles, setRoles] = useState<Role[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+  // Group Members Panel state
+  const [groupMembersTarget, setGroupMembersTarget] = useState<AdminGroupForModal | null>(null);
+  const [groupMembersCallback, setGroupMembersCallback] = useState<(() => void) | null>(null);
+
+  // Delete Group Dialog state
+  const [deleteGroupTarget, setDeleteGroupTarget] = useState<AdminGroupForModal | null>(null);
+  const [deleteGroupCallback, setDeleteGroupCallback] = useState<(() => Promise<void> | void) | null>(null);
+  const [deletingGroup, setDeletingGroup] = useState(false);
 
   // Load permissions and roles on mount and when refresh is triggered
   useEffect(() => {
@@ -303,6 +336,44 @@ export function AdminModalsContainer({ children }: AdminModalsContainerProps) {
     setRefreshTrigger((prev) => prev + 1);
   };
 
+  const openGroupMembersModal = (group: AdminGroupForModal, onMemberRemoved?: () => void) => {
+    setGroupMembersTarget(group);
+    if (onMemberRemoved) {
+      setGroupMembersCallback(() => onMemberRemoved);
+    } else {
+      setGroupMembersCallback(null);
+    }
+  };
+
+  const closeGroupMembersModal = () => {
+    setGroupMembersTarget(null);
+    setGroupMembersCallback(null);
+  };
+
+  const openDeleteGroupDialog = (
+    group: AdminGroupForModal,
+    onConfirm: () => Promise<void> | void,
+  ) => {
+    setDeleteGroupTarget(group);
+    setDeleteGroupCallback(() => onConfirm);
+  };
+
+  const closeDeleteGroupDialog = () => {
+    setDeleteGroupTarget(null);
+    setDeleteGroupCallback(null);
+  };
+
+  const handleConfirmDeleteGroup = async () => {
+    if (!deleteGroupCallback) return;
+    setDeletingGroup(true);
+    try {
+      await deleteGroupCallback();
+    } finally {
+      setDeletingGroup(false);
+      closeDeleteGroupDialog();
+    }
+  };
+
   const value: AdminModalContextType = {
     openRoleModal,
     closeRoleModal,
@@ -340,6 +411,10 @@ export function AdminModalsContainer({ children }: AdminModalsContainerProps) {
     setCategories,
     refreshTrigger,
     triggerRefresh,
+    openGroupMembersModal,
+    closeGroupMembersModal,
+    openDeleteGroupDialog,
+    closeDeleteGroupDialog,
   };
 
   return (
@@ -414,6 +489,53 @@ export function AdminModalsContainer({ children }: AdminModalsContainerProps) {
         subActionsStats={subActionsData.stats}
         loading={subActionsData.loading}
       />
+
+      {/* Group Members Panel */}
+      {groupMembersTarget && (
+        <GroupMembersPanel
+          group={groupMembersTarget}
+          onClose={closeGroupMembersModal}
+          onMemberRemoved={groupMembersCallback ?? (() => {})}
+        />
+      )}
+
+      {/* Delete Group Confirmation */}
+      {deleteGroupTarget && (
+        <AlertDialog
+          open
+          onOpenChange={(open) => !open && closeDeleteGroupDialog()}
+        >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Group</AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div>
+                Are you sure you want to delete{" "}
+                <strong>&quot;{deleteGroupTarget?.name}&quot;</strong>?
+                {deleteGroupTarget?.wallet && (
+                  <span className="block mt-2 text-orange-600 font-medium">
+                    ⚠️ This group has an associated wallet with a balance of $
+                    {Number(deleteGroupTarget.wallet.balance).toLocaleString()}.
+                    The wallet will also be deleted.
+                  </span>
+                )}
+                <span className="block mt-2">This action cannot be undone.</span>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deletingGroup}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmDeleteGroup}
+              disabled={deletingGroup}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              {deletingGroup ? "Deleting..." : "Delete Group"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      )}
     </AdminModalContext.Provider>
   );
 }

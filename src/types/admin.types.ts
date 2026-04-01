@@ -432,3 +432,193 @@ export interface AuditLogsResponse {
   pagination: PaginationMeta;
   statistics: AuditLogStatistics;
 }
+
+// ──────────────────────────────────────────────
+// Group Members
+// ──────────────────────────────────────────────
+export interface AdminGroupMember {
+  id: string;
+  groupId: string;
+  userId: string;
+  role: "owner" | "admin" | "member";
+  status: "active" | "inactive" | "removed" | "banned";
+  joinedAt: string;
+  createdAt: string;
+  user?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone?: string;
+    isVerified: boolean;
+  };
+}
+
+export interface GroupMembersResponse {
+  success: boolean;
+  data: AdminGroupMember[];
+  pagination: PaginationMeta;
+}
+
+// ──────────────────────────────────────────────
+// Admin Notifications
+// ──────────────────────────────────────────────
+export interface AdminNotification {
+  id: string;
+  userId: string;
+  type: string;
+  data: {
+    title: string;
+    message: string;
+    broadcastAt?: string;
+    [key: string]: unknown;
+  };
+  isRead: boolean;
+  createdAt: string;
+  updatedAt: string;
+  user?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+  };
+}
+
+export interface AdminNotificationsResponse {
+  success: boolean;
+  data: AdminNotification[];
+  pagination: PaginationMeta;
+  /** backend key */
+  statistics?: { total: number; unread: number; today: number };
+  /** legacy alias */
+  stats?: { total: number; unread: number; today: number };
+}
+
+// ──────────────────────────────────────────────
+// Platform Analytics
+// ──────────────────────────────────────────────
+export interface ChartPoint {
+  date: string;
+  label: string;
+  count: number;
+  volume: number;
+}
+
+export interface TopSender {
+  walletId: string;
+  txCount: number;
+  totalSent: number;
+  owner?: {
+    firstName: string;
+    lastName: string;
+    email: string;
+  };
+}
+
+export interface PlatformAnalytics {
+  range: string;
+  users: {
+    total: number;
+    verified: number;
+    unverified: number;
+    newInRange: number;
+    verificationRate: number;
+  };
+  organizations: {
+    total: number;
+    active: number;
+    pending: number;
+    inactive: number;
+  };
+  groups: {
+    total: number;
+    withWallets: number;
+    fundraising: number;
+    standard: number;
+  };
+  transactions: {
+    completedInRange: number;
+    totalVolume: number;
+    byType: Record<string, { count: number; volume: number }>;
+    byStatus: Record<string, { count: number; volume: number }>;
+  };
+  wallets: {
+    total: number;
+    active: number;
+    inactive: number;
+    totalBalance: number;
+    topSenders: TopSender[];
+  };
+  notifications: {
+    total: number;
+    unread: number;
+  };
+  charts: {
+    dailyVolume: { day: string; count: number; volume: number }[];
+  };
+}
+
+export interface PlatformAnalyticsResponse {
+  success: boolean;
+  data: PlatformAnalytics;
+}
+
+// ── Support Chat ────────────────────────────────────────────────────
+export interface SupportChatSender {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email?: string;
+}
+
+export interface SupportChatMessage {
+  id: string;
+  chatId: string;
+  senderId: string;
+  content: string;
+  messageType: string;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+  sender?: SupportChatSender;
+}
+
+export interface SupportChatParticipant {
+  id: string;
+  chatId: string;
+  userId: string;
+  joinedAt: string;
+  user?: SupportChatSender;
+}
+
+export interface SupportChat {
+  id: string;
+  isGroup: boolean;
+  type: string;
+  createdAt: string;
+  updatedAt: string;
+  participants?: SupportChatParticipant[];
+  messages?: SupportChatMessage[];
+  lastMessage?: SupportChatMessage | null;
+  unreadCount?: number;
+  lastUnreadAt?: string | null;
+}
+
+export interface SupportChatsResponse {
+  success: boolean;
+  data: {
+    chats: SupportChat[];
+    total: number;
+    totalUnreadMessages: number;
+    page: number;
+    totalPages: number;
+  };
+}
+
+export interface SupportChatMessagesResponse {
+  success: boolean;
+  data: {
+    chatId: string;
+    messages: SupportChatMessage[];
+  };
+}

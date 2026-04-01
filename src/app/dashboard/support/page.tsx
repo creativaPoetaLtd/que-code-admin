@@ -1,7 +1,7 @@
 "use client";
 
-import PlaceholderSection from "@/components/admin/sections/PlaceholderSection";
+import SupportSection from "@/components/admin/sections/SupportSection";
 
 export default function SupportPage() {
-  return <PlaceholderSection title="Support Center" />;
+  return <SupportSection />;
 }

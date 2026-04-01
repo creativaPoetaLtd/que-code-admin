@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import {
@@ -12,16 +11,16 @@ import {
   Scale,
   Target,
   Store,
-  TrendingUp,
   Shield,
   Settings,
   FileText,
-  Headphones,
-  Mail,
+  HelpCircle,
   Heart,
   ShieldCheck,
+  UsersRound,
+  Bell,
+  Mail,
   LogOut,
-  Menu,
   X,
 } from "lucide-react";
 import Badge from "./ui/Badge";
@@ -38,7 +37,7 @@ const navigationSections = [
     items: [
       {
         id: "overview",
-        label: "Overview",
+        label: "Analytics",
         icon: BarChart3,
         badge: { text: "Live", variant: "live" as const },
       },
@@ -46,9 +45,9 @@ const navigationSections = [
       { id: "organizations", label: "Organizations", icon: Building },
       { id: "transactions", label: "Transactions", icon: ArrowRightLeft },
       { id: "financial", label: "Wallet & Restrictions", icon: Wallet },
+      { id: "groups", label: "Groups", icon: UsersRound },
+      { id: "notifications", label: "Notifications", icon: Bell },
       { id: "actions", label: "Actions & Events", icon: Target },
-      { id: "disputes", label: "Disputes", icon: Scale },
-      { id: "merchants", label: "Merchants", icon: Store },
       { id: "admins", label: "System Users", icon: Shield },
       { id: "config", label: "Platform Config", icon: Settings },
 
@@ -56,23 +55,12 @@ const navigationSections = [
       {
         id: "support",
         label: "Support Center",
-        icon: Headphones,
-        badge: { text: "5 open", variant: "default" as const },
+        icon: HelpCircle,
+        // badge: { text: "5 open", variant: "default" as const },
       },
     ],
   },
-  {
-    label: "Operations",
-    items: [
-      {
-        id: "queries",
-        label: "User Queries",
-        icon: Mail,
-        badge: { text: "12", variant: "warning" as const },
-      },
-      { id: "health", label: "System Health", icon: Heart },
-    ],
-  },
+
   {
     label: "System",
     items: [

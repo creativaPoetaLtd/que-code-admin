@@ -497,6 +497,218 @@ export const adminAPI = {
     );
     return response.data;
   },
+
+  // Group Management
+  getAllGroups: async (params?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    hasFundraising?: "true" | "false" | "all";
+    privacyType?: "all" | "public" | "private" | "require_approval";
+  }) => {
+    const token = getAdminToken();
+    const { hasFundraising, ...rest } = params || {};
+    const queryParams: Record<string, unknown> = { ...rest };
+    if (hasFundraising && hasFundraising !== "all") {
+      queryParams.hasFundraising = hasFundraising;
+    }
+    const response = await axios.get(`${BASE_API_URL}/admin/groups`, {
+      headers: { Authorization: `Bearer ${token}` },
+      params: queryParams,
+    });
+    return response.data;
+  },
+
+  deleteGroup: async (id: string) => {
+    const token = getAdminToken();
+    const response = await axios.delete(`${BASE_API_URL}/admin/groups/${id}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+  },
+
+  getGroupMembers: async (
+    groupId: string,
+    params?: { page?: number; limit?: number; role?: string; status?: string },
+  ) => {
+    const token = getAdminToken();
+    const response = await axios.get(
+      `${BASE_API_URL}/admin/groups/${groupId}/members`,
+      { headers: { Authorization: `Bearer ${token}` }, params },
+    );
+    return response.data;
+  },
+
+  removeGroupMember: async (groupId: string, userId: string) => {
+    const token = getAdminToken();
+    const response = await axios.delete(
+      `${BASE_API_URL}/admin/groups/${groupId}/members/${userId}`,
+      { headers: { Authorization: `Bearer ${token}` } },
+    );
+    return response.data;
+  },
+
+  // Wallet Admin
+  toggleWalletStatus: async (id: string) => {
+    const token = getAdminToken();
+    const response = await axios.put(
+      `${BASE_API_URL}/admin/wallets/${id}/status`,
+      {},
+      { headers: { Authorization: `Bearer ${token}` } },
+    );
+    return response.data;
+  },
+
+  getAdminWalletDetail: async (id: string) => {
+    const token = getAdminToken();
+    const response = await axios.get(`${BASE_API_URL}/admin/wallets/${id}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+  },
+
+  // Notifications Admin
+  getAllAdminNotifications: async (params?: {
+    page?: number;
+    limit?: number;
+    type?: string;
+    isRead?: boolean;
+    userId?: string;
+    startDate?: string;
+    endDate?: string;
+  }) => {
+    const token = getAdminToken();
+    const response = await axios.get(`${BASE_API_URL}/admin/notifications`, {
+      headers: { Authorization: `Bearer ${token}` },
+      params,
+    });
+    return response.data;
+  },
+
+  broadcastNotification: async (data: {
+    title: string;
+    message: string;
+    type?: string;
+    targetAll?: boolean;
+    targetUserIds?: string[];
+  }) => {
+    const token = getAdminToken();
+    const response = await axios.post(
+      `${BASE_API_URL}/admin/notifications/broadcast`,
+      data,
+      { headers: { Authorization: `Bearer ${token}` } },
+    );
+    return response.data;
+  },
+
+  deleteAdminNotification: async (id: string) => {
+    const token = getAdminToken();
+    const response = await axios.delete(
+      `${BASE_API_URL}/admin/notifications/${id}`,
+      { headers: { Authorization: `Bearer ${token}` } },
+    );
+    return response.data;
+  },
+
+  getNotificationTypes: async () => {
+    const token = getAdminToken();
+    const response = await axios.get(
+      `${BASE_API_URL}/admin/notifications/types`,
+      { headers: { Authorization: `Bearer ${token}` } },
+    );
+    return response.data;
+  },
+
+  markAdminNotificationRead: async (id: string) => {
+    const token = getAdminToken();
+    const response = await axios.patch(
+      `${BASE_API_URL}/admin/notifications/${id}/read`,
+      {},
+      { headers: { Authorization: `Bearer ${token}` } },
+    );
+    return response.data;
+  },
+
+  markAllAdminNotificationsRead: async (filters?: { userId?: string; type?: string }) => {
+    const token = getAdminToken();
+    const response = await axios.patch(
+      `${BASE_API_URL}/admin/notifications/mark-all-read`,
+      {},
+      { headers: { Authorization: `Bearer ${token}` }, params: filters },
+    );
+    return response.data;
+  },
+
+  // Platform Analytics
+  getPlatformAnalytics: async (range?: "7d" | "30d" | "90d" | "12m") => {
+    const token = getAdminToken();
+    const response = await axios.get(
+      `${BASE_API_URL}/admin/analytics/platform`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+        params: range ? { range } : undefined,
+      },
+    );
+    return response.data;
+  },
+
+  // ── Support Chat ────────────────────────────────────────────────────
+  getAllSupportChats: async (params?: { page?: number; limit?: number }) => {
+    const token = getAdminToken();
+    const response = await axios.get(`${BASE_API_URL}/admin/support/chats`, {
+      headers: { Authorization: `Bearer ${token}` },
+      params,
+    });
+    return response.data;
+  },
+
+  joinSupportChat: async (chatId: string) => {
+    const token = getAdminToken();
+    const response = await axios.post(
+      `${BASE_API_URL}/admin/support/chats/${chatId}/join`,
+      {},
+      { headers: { Authorization: `Bearer ${token}` } },
+    );
+    return response.data;
+  },
+
+  getAdminSupportChatMessages: async (chatId: string, params?: { page?: number; limit?: number }) => {
+    const token = getAdminToken();
+    const response = await axios.get(
+      `${BASE_API_URL}/admin/support/chats/${chatId}/messages`,
+      { headers: { Authorization: `Bearer ${token}` }, params },
+    );
+    return response.data;
+  },
+
+  adminSendSupportMessage: async (chatId: string, content: string) => {
+    const token = getAdminToken();
+    const response = await axios.post(
+      `${BASE_API_URL}/admin/support/chats/${chatId}/messages`,
+      { content },
+      { headers: { Authorization: `Bearer ${token}` } },
+    );
+    return response.data;
+  },
+
+  markAdminSupportChatAsRead: async (chatId: string) => {
+    const token = getAdminToken();
+    const response = await axios.patch(
+      `${BASE_API_URL}/admin/support/chats/${chatId}/read`,
+      {},
+      { headers: { Authorization: `Bearer ${token}` } },
+    );
+    return response.data;
+  },
+
+  getAdminSupportUnreadCount: async () => {
+    const token = getAdminToken();
+    const response = await axios.get(
+      `${BASE_API_URL}/admin/support/unread-count`,
+      { headers: { Authorization: `Bearer ${token}` } },
+    );
+    return response.data;
+  },
 };
 
 export default adminAPI;

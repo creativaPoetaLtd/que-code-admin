@@ -182,7 +182,6 @@ export default function AuditLogsSection() {
       "Status",
       "Level",
       "Duration (ms)",
-      "IP Address",
     ];
     const csv = [
       headers.join(","),
@@ -376,7 +375,6 @@ export default function AuditLogsSection() {
                       <TableHead>Status</TableHead>
                       <TableHead>Level</TableHead>
                       <TableHead>Duration</TableHead>
-                      <TableHead>IP Address</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -436,11 +434,6 @@ export default function AuditLogsSection() {
                         <TableCell>
                           <span className="text-xs text-gray-600">
                             {log.duration ? `${log.duration}ms` : "N/A"}
-                          </span>
-                        </TableCell>
-                        <TableCell>
-                          <span className="text-xs text-gray-500">
-                            {log.ipAddress || "N/A"}
                           </span>
                         </TableCell>
                       </TableRow>

@@ -37,18 +37,12 @@ const viewConfig = {
     title: "Wallet & Financial Management",
     subtitle: "Monitor wallets, restrictions, balances and financial flows",
   },
-  disputes: {
-    title: "Disputes & chargebacks",
-    subtitle: "End-to-end view of open disputes and admin decisions",
-  },
+
   actions: {
     title: "QC Pro actions management",
     subtitle: "Global view of tickets, donations, transport, votes",
   },
-  merchants: {
-    title: "Merchants",
-    subtitle: "Shops, transport companies, ticketing & online merchants",
-  },
+ 
   admins: {
     title: "Admin roles & access",
     subtitle:
@@ -67,10 +61,6 @@ const viewConfig = {
   support: {
     title: "Support center",
     subtitle: "Central inbox for user issues, disputes, merchant requests",
-  },
-  queries: {
-    title: "User queries",
-    subtitle: "Questions and requests sent by users from the app or web",
   },
   health: {
     title: "System health",
@@ -147,12 +137,8 @@ export default function AdminDashboard() {
         return <TransactionsSection />;
       case "financial":
         return <WalletSection />;
-      case "disputes":
-        return <PlaceholderSection title="Disputes & Chargebacks" />;
       case "actions":
         return <ActionSection />;
-      case "merchants":
-        return <PlaceholderSection title="Merchants" />;
       case "analytics":
         return <PlaceholderSection title="Analytics" />;
       case "admins":

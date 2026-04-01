@@ -10,8 +10,8 @@ import { AdminModalsContainer } from "@/components/admin/AdminModalsContainer";
 // View titles and subtitles
 const viewConfig: Record<string, { title: string; subtitle: string }> = {
   overview: {
-    title: "Super Admin overview",
-    subtitle: "Global status of users, orgs, wallets & risk",
+    title: "Analytics",
+    subtitle: "Platform-wide insights: users, orgs, wallets, transactions & risk",
   },
   users: {
     title: "User management",
@@ -30,17 +30,9 @@ const viewConfig: Record<string, { title: string; subtitle: string }> = {
     title: "Wallet & Financial Management",
     subtitle: "Monitor wallets, restrictions, balances and financial flows",
   },
-  disputes: {
-    title: "Disputes & chargebacks",
-    subtitle: "End-to-end view of open disputes and admin decisions",
-  },
   actions: {
     title: "QC Pro actions management",
     subtitle: "Global view of tickets, donations, transport, votes",
-  },
-  merchants: {
-    title: "Merchants",
-    subtitle: "Shops, transport companies, ticketing & online merchants",
   },
   admins: {
     title: "Admin roles & access",
@@ -57,14 +49,6 @@ const viewConfig: Record<string, { title: string; subtitle: string }> = {
     subtitle:
       "Every sensitive admin action is recorded for security and traceability",
   },
-  support: {
-    title: "Support center",
-    subtitle: "Central inbox for user issues, disputes, merchant requests",
-  },
-  queries: {
-    title: "User queries",
-    subtitle: "Questions and requests sent by users from the app or web",
-  },
   health: {
     title: "System health",
     subtitle: "Uptime, latency, error rate and background job queues",
@@ -77,6 +61,22 @@ const viewConfig: Record<string, { title: string; subtitle: string }> = {
     title: "Settings",
     subtitle:
       "Global configuration for features, fees, branding, notifications",
+  },
+  groups: {
+    title: "Groups management",
+    subtitle: "View and manage all platform groups and their wallets",
+  },
+  notifications: {
+    title: "Notifications",
+    subtitle: "Monitor platform notifications and broadcast messages to users",
+  },
+  support: {
+    title: "Support",
+    subtitle: "Manage user support chats and respond to queries",
+  },
+  queries: {
+    title: "Queries",
+    subtitle: "User-submitted queries and platform feedback",
   },
 };
 

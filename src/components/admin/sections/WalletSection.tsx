@@ -3,6 +3,7 @@
 import { useState, useMemo, useEffect } from "react";
 import Card, { CardHeader, CardTitle, CardContent } from "../ui/Card";
 import { adminAPI } from "@/services/adminService";
+import { organizationAPI } from "@/services/organizationService";
 import {
   AdminWallet,
   AdminWalletsResponse,
@@ -82,176 +83,6 @@ interface WalletRestriction {
   updatedAt: Date;
 }
 
-const mockWallets: WalletData[] = [
-  {
-    id: "WALLET-001",
-    userId: "USER-001",
-    ownerName: "Marie Lambert",
-    ownerType: "user",
-    balance: 125000,
-    currency: "RWF",
-    isActive: true,
-    restrictionsCount: 2,
-    totalRestricted: 25000,
-    availableBalance: 100000,
-    transactionCount: 15,
-    lastTransaction: new Date("2024-12-04T10:30:00"),
-    createdAt: new Date("2024-01-15T08:00:00"),
-    updatedAt: new Date("2024-12-04T10:35:00"),
-  },
-  {
-    id: "WALLET-002",
-    organizationId: "ORG-001",
-    ownerName: "Hope Church Brussels",
-    ownerType: "organization",
-    balance: 2500000,
-    currency: "RWF",
-    isActive: true,
-    restrictionsCount: 5,
-    totalRestricted: 500000,
-    availableBalance: 2000000,
-    transactionCount: 45,
-    lastTransaction: new Date("2024-12-04T09:15:00"),
-    createdAt: new Date("2023-06-01T10:00:00"),
-    updatedAt: new Date("2024-12-04T09:20:00"),
-  },
-  {
-    id: "WALLET-003",
-    userId: "USER-002",
-    ownerName: "Jean Uwimana",
-    ownerType: "user",
-    balance: 67000,
-    currency: "RWF",
-    isActive: true,
-    restrictionsCount: 0,
-    totalRestricted: 0,
-    availableBalance: 67000,
-    transactionCount: 8,
-    lastTransaction: new Date("2024-12-03T16:45:00"),
-    createdAt: new Date("2024-03-10T14:30:00"),
-    updatedAt: new Date("2024-12-03T16:50:00"),
-  },
-  {
-    id: "WALLET-004",
-    organizationId: "ORG-002",
-    ownerName: "Green Energy Rwanda",
-    ownerType: "organization",
-    balance: 800000,
-    currency: "RWF",
-    isActive: false,
-    restrictionsCount: 3,
-    totalRestricted: 150000,
-    availableBalance: 650000,
-    transactionCount: 12,
-    lastTransaction: new Date("2024-11-28T11:20:00"),
-    createdAt: new Date("2023-09-15T12:00:00"),
-    updatedAt: new Date("2024-11-28T11:25:00"),
-  },
-  {
-    id: "WALLET-005",
-    userId: "USER-003",
-    ownerName: "Sarah Johnson",
-    ownerType: "user",
-    balance: 189000,
-    currency: "RWF",
-    isActive: true,
-    restrictionsCount: 1,
-    totalRestricted: 50000,
-    availableBalance: 139000,
-    transactionCount: 22,
-    lastTransaction: new Date("2024-12-02T14:20:00"),
-    createdAt: new Date("2024-02-20T09:15:00"),
-    updatedAt: new Date("2024-12-02T14:25:00"),
-  },
-];
-
-const mockRestrictions: WalletRestriction[] = [
-  {
-    id: "RESTR-001",
-    walletId: "WALLET-001",
-    walletOwner: "Marie Lambert",
-    categoryId: "CAT-001",
-    categoryName: "Religious",
-    categoryDescription: "Donations and payments to religious organizations",
-    amount: 15000,
-    usedAmount: 5000,
-    remainingAmount: 10000,
-    transactionCount: 3,
-    createdAt: new Date("2024-01-15T08:30:00"),
-    updatedAt: new Date("2024-12-04T10:30:00"),
-  },
-  {
-    id: "RESTR-002",
-    walletId: "WALLET-001",
-    walletOwner: "Marie Lambert",
-    categoryId: "CAT-002",
-    categoryName: "Transportation",
-    categoryDescription: "Payments for taxi, bus, and transport services",
-    amount: 10000,
-    usedAmount: 8500,
-    remainingAmount: 1500,
-    transactionCount: 5,
-    createdAt: new Date("2024-01-15T08:30:00"),
-    updatedAt: new Date("2024-12-03T16:15:00"),
-  },
-  {
-    id: "RESTR-003",
-    walletId: "WALLET-002",
-    walletOwner: "Hope Church Brussels",
-    categoryId: "CAT-003",
-    categoryName: "Energy",
-    categoryDescription: "Payments for electricity, solar, and energy services",
-    amount: 200000,
-    usedAmount: 75000,
-    remainingAmount: 125000,
-    transactionCount: 8,
-    createdAt: new Date("2023-06-01T10:30:00"),
-    updatedAt: new Date("2024-12-01T14:20:00"),
-  },
-  {
-    id: "RESTR-004",
-    walletId: "WALLET-002",
-    walletOwner: "Hope Church Brussels",
-    categoryId: "CAT-004",
-    categoryName: "Technology",
-    categoryDescription:
-      "Payments for software, IT services, and tech products",
-    amount: 150000,
-    usedAmount: 45000,
-    remainingAmount: 105000,
-    transactionCount: 4,
-    createdAt: new Date("2023-06-01T10:30:00"),
-    updatedAt: new Date("2024-11-25T09:45:00"),
-  },
-  {
-    id: "RESTR-005",
-    walletId: "WALLET-002",
-    walletOwner: "Hope Church Brussels",
-    categoryId: "CAT-005",
-    categoryName: "Healthcare",
-    categoryDescription: "Medical payments and healthcare services",
-    amount: 100000,
-    usedAmount: 0,
-    remainingAmount: 100000,
-    transactionCount: 0,
-    createdAt: new Date("2023-08-15T16:00:00"),
-    updatedAt: new Date("2023-08-15T16:00:00"),
-  },
-  {
-    id: "RESTR-006",
-    walletId: "WALLET-005",
-    walletOwner: "Sarah Johnson",
-    categoryId: "CAT-002",
-    categoryName: "Transportation",
-    categoryDescription: "Payments for taxi, bus, and transport services",
-    amount: 50000,
-    usedAmount: 22000,
-    remainingAmount: 28000,
-    transactionCount: 7,
-    createdAt: new Date("2024-02-20T09:30:00"),
-    updatedAt: new Date("2024-12-02T11:10:00"),
-  },
-];
 
 export default function WalletSection() {
   const [activeTab, setActiveTab] = useState<"wallets" | "restrictions">(
@@ -269,6 +100,7 @@ export default function WalletSection() {
   const [sortField, setSortField] = useState<keyof WalletData>("updatedAt");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const [togglingWalletId, setTogglingWalletId] = useState<string | null>(null);
 
   // API state
   const [wallets, setWallets] = useState<AdminWallet[]>([]);
@@ -551,6 +383,25 @@ export default function WalletSection() {
     }
   };
 
+  const handleToggleWalletStatus = async (walletId: string, currentActive: boolean) => {
+    setTogglingWalletId(walletId);
+    setOpenMenuId(null);
+    try {
+      const res = await adminAPI.toggleWalletStatus(walletId);
+      if (res.success) {
+        setWallets((prev) =>
+          prev.map((w) =>
+            w.id === walletId ? { ...w, isActive: res.data.isActive } : w,
+          ),
+        );
+      }
+    } catch (err: any) {
+      console.error("Failed to toggle wallet status:", err);
+    } finally {
+      setTogglingWalletId(null);
+    }
+  };
+
   const resetFilters = () => {
     setSearchTerm("");
     setOwnerTypeFilter("all");
@@ -568,13 +419,13 @@ export default function WalletSection() {
   const fetchCategoriesAndWallets = async () => {
     try {
       const [categoriesRes, walletsRes] = await Promise.all([
-        adminAPI.getTransactionCategories(),
+        organizationAPI.getAllCategories(),
         adminAPI.getAllWallets({ limit: 1000 }), // Get all wallets for dropdown
       ]);
 
-      if (categoriesRes.success) {
-        setCategories(categoriesRes.data || []);
-      }
+      // organizationAPI.getAllCategories() returns array directly
+      setCategories(Array.isArray(categoriesRes) ? categoriesRes : categoriesRes.data || []);
+
       if (walletsRes.success) {
         setWalletsForDropdown(walletsRes.data || []);
       }
@@ -993,8 +844,8 @@ export default function WalletSection() {
                               <div
                                 className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-medium ${
                                   wallet.ownerType === "user"
-                                    ? "bg-gradient-to-br from-blue-400 to-blue-600"
-                                    : "bg-gradient-to-br from-purple-400 to-purple-600"
+                                    ? "bg-linear-to-br from-blue-400 to-blue-600"
+                                    : "bg-linear-to-br from-purple-400 to-purple-600"
                                 }`}
                               >
                                 {getWalletTypeIcon(wallet.ownerType)}
@@ -1124,19 +975,21 @@ export default function WalletSection() {
 
                                       {wallet.isActive ? (
                                         <button
-                                          className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-3 text-orange-600"
-                                          onClick={() => setOpenMenuId(null)}
+                                          className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-3 text-orange-600 disabled:opacity-50"
+                                          disabled={togglingWalletId === wallet.id}
+                                          onClick={() => handleToggleWalletStatus(wallet.id, wallet.isActive)}
                                         >
                                           <Ban className="w-4 h-4" />
-                                          Deactivate Wallet
+                                          {togglingWalletId === wallet.id ? "Deactivating..." : "Deactivate Wallet"}
                                         </button>
                                       ) : (
                                         <button
-                                          className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-3 text-green-600"
-                                          onClick={() => setOpenMenuId(null)}
+                                          className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-3 text-green-600 disabled:opacity-50"
+                                          disabled={togglingWalletId === wallet.id}
+                                          onClick={() => handleToggleWalletStatus(wallet.id, wallet.isActive)}
                                         >
                                           <CheckCircle className="w-4 h-4" />
-                                          Activate Wallet
+                                          {togglingWalletId === wallet.id ? "Activating..." : "Activate Wallet"}
                                         </button>
                                       )}
 

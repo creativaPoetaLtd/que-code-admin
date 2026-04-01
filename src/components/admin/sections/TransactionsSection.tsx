@@ -459,16 +459,7 @@ export default function TransactionsSection() {
             >
               Export
             </Button>
-            <Button
-              variant='primary'
-              size='sm'
-              icon={<Plus className='w-4 h-4' />}
-            >
-              New Transaction
-            </Button>
           </div>
-
-          {/* Transactions Statistics Cards */}
           <div className='grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4'>
             <KPICard
               title='Total Transactions'
@@ -1046,7 +1037,7 @@ export default function TransactionsSection() {
                       >
                         <TableCell>
                           <div className='flex items-center gap-3'>
-                            <div className='w-8 h-8 rounded-full bg-gradient-to-br from-indigo-400 to-indigo-600 flex items-center justify-center text-white text-xs font-medium'>
+                            <div className='w-8 h-8 rounded-full bg-linear-to-br from-indigo-400 to-indigo-600 flex items-center justify-center text-white text-xs font-medium'>
                               <Tag className='w-4 h-4' />
                             </div>
                             <div>
