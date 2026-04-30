@@ -581,6 +581,14 @@ export interface SupportChatMessage {
   createdAt: string;
   updatedAt: string;
   sender?: SupportChatSender;
+  // media fields
+  mediaUrl?: string;
+  mediaType?: string;
+  fileSize?: number;
+  thumbnailUrl?: string;
+  fileName?: string;
+  mimeType?: string;
+  duration?: number;
 }
 
 export interface SupportChatParticipant {

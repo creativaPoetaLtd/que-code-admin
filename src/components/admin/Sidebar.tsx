@@ -24,6 +24,7 @@ import {
   X,
 } from "lucide-react";
 import Badge from "./ui/Badge";
+import { useAdminAuth } from "@/context/AdminAuthContext";
 
 interface SidebarProps {
   activeView: string;
@@ -75,6 +76,8 @@ export default function Sidebar({
   isMobileOpen,
   onMobileToggle,
 }: SidebarProps) {
+  const { logout } = useAdminAuth();
+
   return (
     <>
       {/* Mobile backdrop */}
@@ -170,7 +173,10 @@ export default function Sidebar({
 
         {/* Bottom actions */}
         <div className="border-t border-gray-200 pt-4 space-y-1">
-          <button className="w-full flex items-center gap-2 px-2 py-2 rounded-xl text-sm transition-all text-gray-600 hover:bg-gray-100 hover:text-gray-700">
+          <button
+            onClick={logout}
+            className="w-full flex items-center gap-2 px-2 py-2 rounded-xl text-sm transition-all text-gray-600 hover:bg-red-50 hover:text-red-600"
+          >
             <LogOut className="w-4 h-4 shrink-0" />
             <span>Logout</span>
           </button>

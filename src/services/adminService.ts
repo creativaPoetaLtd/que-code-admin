@@ -691,6 +691,29 @@ export const adminAPI = {
     return response.data;
   },
 
+  adminSendSupportMedia: async (
+    chatId: string,
+    file: File,
+    caption?: string,
+    onProgress?: (pct: number) => void,
+  ) => {
+    const token = getAdminToken();
+    const formData = new FormData();
+    formData.append("file", file);
+    if (caption) formData.append("caption", caption);
+    const response = await axios.post(
+      `${BASE_API_URL}/admin/support/chats/${chatId}/media`,
+      formData,
+      {
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "multipart/form-data" },
+        onUploadProgress: (e) => {
+          if (onProgress && e.total) onProgress(Math.round((e.loaded * 100) / e.total));
+        },
+      },
+    );
+    return response.data;
+  },
+
   markAdminSupportChatAsRead: async (chatId: string) => {
     const token = getAdminToken();
     const response = await axios.patch(
